@@ -1,0 +1,107 @@
+* {
+  font-family: 'Jura', sans-serif;
+  color: white;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-y: hidden;
+
+  background: linear-gradient(
+    135deg,
+    #5a005a 0%,
+    #3b0050 40%,
+    #1a0033 100%
+  );
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: white;
+}
+
+.navbar {
+  background: #11111139;
+  color: white;
+  padding: 0 1rem;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.navbar ul {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.navbar ul li {
+  padding: 0.5rem 1rem;
+}
+
+.navbar ul li:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.navbar ul li a {
+  text-decoration: none;
+  color: white;
+  font-size: 24px;
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: white;
+  cursor: pointer;
+}
+
+/* ---------------------------Home page--------------------------- */
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: 0 auto;
+  width: 90%;
+}
+
+.home .cimek {
+  text-align: left;
+  width: 100%;
+}
+
+/* ----------------------------Mobile---------------------------- */
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  ul {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: #11111139;
+    flex-direction: column;
+    width: 200px;
+    padding: 1rem;
+    display: none;
+    border-radius: 20px;
+  }
+
+  ul.open {
+    display: flex;
+  }
+}
