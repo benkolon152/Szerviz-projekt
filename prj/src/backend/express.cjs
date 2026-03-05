@@ -1,26 +1,29 @@
-require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
-const port = 3333;
-
-const http = require("http");
-const { neon } = require("@neondatabase/serverless");
-
-const sql = neon(process.env.DATABASE_URL);
+const pg = require("pg");
+const bcrypt = require("bcrypt");
+require("dotenv").config();
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
 const app = express();
+const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
 
-const requestHandler = async (req, res) => {
-  const result = await sql`SELECT version()`;
-  const { version } = result[0];
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end(version);
-};
-
-http.createServer(requestHandler).listen(3000, () => {
-  console.log("Server running at http://localhost:3000");
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Ismeretlen szerverhiba" });
 });
+
+app.listen(PORT, () => {
+  console.log("\n═══════════════════════════════════════════════════════════");
+  console.log("  🚀 Express szerver fut!");
+  console.log(`  📍 http://localhost:${PORT}`);
+  console.log("  💾 PostgreSQL Neon adatbázis csatlakozva");
+  console.log("═══════════════════════════════════════════════════════════\n");
+});
+
+module.exports = app;
