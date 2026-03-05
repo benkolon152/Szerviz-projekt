@@ -13,6 +13,22 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
+app.post("/api/register", async (req, res) => {
+  const { username, email, password } = req.body;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      "INSERT INTO users (username, useremail, pw) VALUES ($1, $2, $3) RETURNING *",
+      [username, email, hashedPassword],
+    );
+    res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ message: "Error creating user" });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Ismeretlen szerverhiba" });

@@ -1,26 +1,34 @@
 <!--register-->
 <script>
+  import { goto } from "$app/navigation";
+
   let username = "";
   let email = "";
   let password = "";
   let message = "";
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-
+  async function handleSubmit(event) {
+    event.preventDefault();
     try {
-      const res = await fetch("/api/register", {
+      const response = await fetch("http://localhost:3001/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ username, email, password }),
       });
-
-      const data = await res.json();
+      const data = await response.json();
       message = data.message;
+
+      if (response.ok) {
+        goto("/");
+      }
     } catch (error) {
-      message = "Network error while registering.";
+      console.error("Error:", error);
+      message = "An error occurred. Please try again.";
     }
   }
+
 </script>
 
 <div style="align-items: center; justify-content: center; display: flex; height: 100vh;">
