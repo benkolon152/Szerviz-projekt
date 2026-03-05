@@ -28,9 +28,8 @@
 
 <div class="shop" style="text-align: center;">
     <div class="vbox" style="overflow-y: auto;">
-        <div><h2><b style="color: black; margin-bottom: 35px;">Kiemelt Termékeink</b></h2>
-            <button class="hamburger_sort" on:click={toggle}> ☰</button>
-        
+        <div class="hbox" style="display:flex; position:relative; color: black; margin-bottom: 35px; justify-content:center;align-items:center;"><h2><b style="color:black;">Kiemelt Termékeink</b></h2>
+            <button class="hamburger_sort" on:click={toggle} style="background-color: black; border-radius:15px; max-height:35px;"> ☰</button>
         </div>
         <div class="hbox cards-container">
             <div class="cards">
