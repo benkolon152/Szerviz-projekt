@@ -9,8 +9,8 @@ export default async function Register(req, res) {
     const { username, email, password } = req.body;
 
     await pool.query(
-      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
-      [username, email, password]
+      "INSERT INTO users (username, useremail, pw) VALUES ($1, $2, $3)",
+      [username, email, password],
     );
 
     return res.status(201).json({
