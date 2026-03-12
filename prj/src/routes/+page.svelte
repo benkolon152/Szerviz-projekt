@@ -16,7 +16,7 @@
     </button>
     <!--TODO this should be on the left side-->
     <ul class:open={isOpen}>
-      <li><a href="/">Home</a></li>
+      <li><a href="/"><b>Home</b></a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild">Pc builder</a></li>
 
@@ -132,7 +132,7 @@
           <p class="comment">Szöveg helye – itt megoszthat bővebb információkat az ajánlatról vagy szolgáltatásról.</p>
           <div class="hbox reviewer">
             <div class="image-container" style="overflow: hidden; border-radius: 50%; background: black;">
-              <img class="image" style="color:transparent; height: 50px; width: 50px; object-fit: cover;" src="white.png" />
+              <img class="image" style="color:transparent; height: 50px; width: 50px; object-fit: cover;" src="white.png" alt="placeholder" />
             </div>
             <div class="name">
               <h5 style="color: black;">Name</h5>
@@ -146,7 +146,7 @@
           <p class="comment">Szöveg helye – itt megoszthat bővebb információkat az ajánlatról vagy szolgáltatásról.</p>
           <div class="hbox reviewer">
             <div class="image-container" style="overflow: hidden; border-radius: 50%; background: black;">
-              <img class="image" style="color:transparent; height: 50px; width: 50px; object-fit: cover;" src="white.png" />
+              <img class="image" style="color:transparent; height: 50px; width: 50px; object-fit: cover;" src="white.png" alt="placeholder" />
             </div>
             <div class="name">
               <h5 style="color: black;">Name</h5>
@@ -160,7 +160,7 @@
           <p class="comment">Szöveg helye – itt megoszthat bővebb információkat az ajánlatról vagy szolgáltatásról.</p>
           <div class="hbox reviewer">
             <div class="image-container" style="overflow: hidden; border-radius: 100%; background: black;">
-              <img class="image" style="color:transparent; height: 50px; width: 50px; object-fit: cover;" src="white.png" />
+              <img class="image" style="color:transparent; height: 50px; width: 50px; object-fit: cover;" src="white.png" alt="placeholder" />
             </div>
             <div class="name">
               <h5 style="color: black;">Name</h5>
