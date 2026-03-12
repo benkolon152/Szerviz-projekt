@@ -294,7 +294,7 @@ body {
 }
 
 .shop .vbox {
-  display:flex;
+  display: flex;
   background-color: white;
   border-radius: 15px;
   max-width: 2000px;
@@ -310,22 +310,19 @@ body {
   cursor: pointer;
 }
 
-
-
-
 /* ----------------------------Inventory---------------------------- */
 /*--Fix the flex problmem--*/
-.upform{
+.upform {
   display: flex;
-background-color: white;
-border-radius: 15px;
-height: 500px;
-color: black;
-max-width: 1000px;
-min-width: 900px;
+  background-color: white;
+  border-radius: 15px;
+  height: 500px;
+  color: black;
+  max-width: 1000px;
+  min-width: 900px;
 }
 
-.inv_h{
+.inv_h {
   color: white;
 }
 
@@ -340,10 +337,8 @@ min-width: 900px;
   display: flex;
   border-radius: 10px;
   background-color: white;
-  margin-left:200px ;
+  margin-left: 200px;
 }
-
-
 
 /* -----------------------------Login---------------------------- */
 
@@ -362,7 +357,7 @@ min-width: 900px;
     display: block;
   }
 
-  ul {
+  .navbar ul {
     position: absolute;
     top: 60px;
     right: 10px;
@@ -374,7 +369,7 @@ min-width: 900px;
     border-radius: 20px;
   }
 
-  ul.open {
+  .navbar ul.open {
     display: flex;
   }
 }
