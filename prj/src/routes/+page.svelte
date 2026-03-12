@@ -16,7 +16,7 @@
     </button>
     <!--TODO this should be on the left side-->
     <ul class:open={isOpen}>
-      <li><a href="/">Home</a></li>
+      <li><a href="/"><b>Home</b></a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild">Pc builder</a></li>
 
@@ -29,31 +29,34 @@
 
 <!-- ---------------------------------HOME-------------------------------- -->
 <div class="home">
-<img src="white.png" alt="" style="width: 100%; height: 400px; object-fit: cover; margin: 20px 0;" />
-    <h1 class="cimek">Kiemelt</h1>
+  <img class="banner" src="white.png" />
+  <h1 class="cimek">Kiemelt</h1>
+  
+  <div class="highlight">
     <div class="hbox cards-container">
       <div class="cards">
-        <img src="white.png" alt="Avatar" style="width:100%">
+        <img class="image" src="white.png">
         <div class="cards-content">
             <h4>Előre összeszerelt PC-k</h4>
             <p>Minőségi, előre összeszerelt számítógépek a kedvező árú modellektől a legerősebb konfigurációkig.</p>
         </div>
       </div>
       <div class="cards">
-        <img src="white.png" alt="Avatar" style="width:100%">
+        <img class="image" src="white.png">
         <div class="cards-content">
             <h4>Szerviz és javítás</h4>
             <p>Bármilyen számítógépes probléma megoldható.</p>
         </div>
       </div>
       <div class="cards">
-        <img src="white.png" alt="Avatar" style="width:100%">
+        <img class="image" src="white.png">
         <div class="cards-content">
             <h4>Használt és új alkatrészek</h4>
             <p>Szöveg helye – itt megoszthat bővebb információkat az ajánlatról vagy szolgáltatásról.</p>
         </div>
       </div>
     </div>
+  </div>
 <!-- ---------------------------------PC BUILDEK-------------------------------- -->
   <h1 class="cimek">PC Buildek</h1>
 
