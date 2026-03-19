@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-<!--register-->
-=======
 <!--register-->
 <script>
   import { goto } from "$app/navigation";
@@ -47,4 +44,3 @@
       </form>
     </div>
 </div>
->>>>>>> ec80532e228adb7acfb03f96fa21c3e1ec867036
