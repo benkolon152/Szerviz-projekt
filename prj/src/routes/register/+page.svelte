@@ -17,15 +17,15 @@
         },
         body: JSON.stringify({ username, email, password }),
       });
-      const data = await response.json();
-      message = data.message;
+      const data = await response.json().catch(() => ({}));
+      message = data.message || "Request failed.";
 
       if (response.ok) {
         goto("/");
       }
     } catch (error) {
       console.error("Error:", error);
-      message = "An error occurred. Please try again.";
+      message = "Cannot reach the server. Make sure backend is running on http://localhost:3001.";
     }
   }
 

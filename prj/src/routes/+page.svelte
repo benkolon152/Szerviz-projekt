@@ -16,6 +16,7 @@
     
     <ul class:open={isOpen}>
       <li><a href="/"><b>Home</b></a></li>
+      <li><a href="/"><b>Home</b></a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild">Pc builder</a></li>
       <li><a href="/">Profile</a></li> 
