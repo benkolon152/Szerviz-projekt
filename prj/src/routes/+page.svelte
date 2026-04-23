@@ -1,8 +1,20 @@
 <script>
-  let isOpen = false;
+
+  let isNavOpen = false;
+  let isProfileOpen = false;
+  let isLoggedIn = false;
 
   function toggle() {
-    isOpen = !isOpen;
+    isNavOpen = !isNavOpen;
+  }
+
+  function toggleProfile(){
+    isProfileOpen = !isProfileOpen;
+  }
+
+  function handleLogout() {
+    isLoggedIn = false;
+    isProfileOpen = false;
   }
 </script>
 
@@ -11,18 +23,31 @@
   <div class="nav-container">
     <a href="/" class="logo">MyApp</a> <!-- TODO logo-->
 
-    <button class="hamburger" on:click={toggle}>
+    <button class="hamburger" type="button" on:click={toggle}>
       ☰
     </button>
     <!--TODO this should be on the left side-->
-    <ul class:open={isOpen}>
+    <ul class="nav-links" class:open={isNavOpen}>
       <li><a href="/"><b>Home</b></a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild">Pc builder</a></li>
 
       <!-- stay on the right-->
-      <li><a href="/">Profile</a></li> <!-- TODO profile dropwdown menu-->
-      <li><a href="/login">Login</a></li>
+      <li class="profile-menu">
+        <button class="profile-toggle" type="button" aria-expanded={isProfileOpen} on:click={toggleProfile}>
+          Profile
+        </button>
+
+        <ul class="profile-dropdown" class:open={isProfileOpen}>
+          {#if isLoggedIn}
+            <li><a href="/profile">My account</a></li>
+            <li><a href="/orders">Orders</a></li>
+            <li><button type="button" on:click={handleLogout}>Logout</button></li>
+          {:else}
+            <li><a href="/login">Login</a></li>
+          {/if}
+        </ul>
+      </li>
     </ul>
   </div>
 </nav>
@@ -118,7 +143,7 @@
       </div>
 
       <div class="image-container">
-        <img class="image" src="white.png" alt="About image" />
+        <img class="image" src="white.png" alt="About illustration" />
       </div>
     </div>
   </section>

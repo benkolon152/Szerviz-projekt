@@ -47,9 +47,10 @@ body {
   align-items: center;
   max-width: 1100px;
   margin: 0 auto;
+  width: 100%;
 }
 
-.navbar ul {
+.nav-links {
   background: none;
   list-style: none;
   display: flex;
@@ -57,22 +58,78 @@ body {
   flex-direction: row;
   padding: 0;
   border-radius: 20px;
+  align-items: center;
 }
 
-.navbar ul li {
+.nav-links > li {
   padding: 0.5rem 1rem;
 }
 
-.navbar ul li:hover {
+.nav-links > li:hover {
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.navbar ul li a {
+.nav-links > li a {
   text-decoration: none;
   color: white;
   font-size: 24px;
+}
+
+.profile-menu {
+  position: relative;
+}
+
+.profile-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.profile-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  padding: 0.5rem;
+  margin: 0;
+  background: rgba(17, 17, 17, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
+  flex-direction: column;
+  z-index: 20;
+}
+
+.profile-dropdown.open {
+  display: flex;
+}
+
+.profile-dropdown li {
+  padding: 0;
+}
+
+.profile-dropdown li:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.profile-dropdown a,
+.profile-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  background: none;
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
 }
 
 .hamburger {
@@ -362,7 +419,7 @@ min-width: 900px;
     display: block;
   }
 
-  ul {
+  .nav-links {
     position: absolute;
     top: 60px;
     right: 10px;
@@ -374,7 +431,23 @@ min-width: 900px;
     border-radius: 20px;
   }
 
-  ul.open {
+  .nav-links.open {
     display: flex;
+  }
+
+  .nav-links > li {
+    width: 100%;
+  }
+
+  .profile-menu {
+    width: 100%;
+  }
+
+  .profile-dropdown {
+    position: static;
+    min-width: 100%;
+    margin-top: 0.5rem;
+    box-shadow: none;
+    background: rgba(0, 0, 0, 0.18);
   }
 }

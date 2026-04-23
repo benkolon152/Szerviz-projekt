@@ -40,6 +40,7 @@
                 <label for="storage">Háttertar:</label>
                 <label for="storage_two">Masodlagos háttértár:</label><!--TODO ez alapbol hidden csak ha mar az elsodleges tarolo ki lett valasztva akkor jelenjen meg-->
                 <label for="cooling">Hűtés(Opcionális):</label><!--TODO ez pedig eleve opcionalis-->
+                <label for="fans">Ventillatorok(Opcionális):</label>
 
                 <p><b>Választható extrák</b></p>
                 <!--TODO Ezek alapból kiszurkitve egy tickbox-al lesznek aktivak-->

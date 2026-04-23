@@ -48,7 +48,7 @@
             </form>
         </div>
     </div>
-    <div class="hbox">
+    <div class="hbox" style="color:black;">
         <table class="table">
             <thead>
                 <tr>
