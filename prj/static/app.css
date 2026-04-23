@@ -52,9 +52,10 @@ body {
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
+  width: 100%;
 }
 
-.navbar ul {
+.nav-links {
   background: none;
   list-style: none;
   background: none;
@@ -66,20 +67,32 @@ body {
   flex-direction: row;
   padding: 0;
   border-radius: 20px;
+  align-items: center;
 }
 
-.navbar ul li {
+.nav-links > li {
   padding: 0.5rem 1rem;
 }
 
-.navbar ul li:hover {
+.nav-links > li:hover {
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.navbar ul li a {
+.nav-links > li a {
   text-decoration: none;
+  color: white;
+  font-size: 1.2rem; /* Adjusted from 24px for better mobile scaling */
+}
+
+.profile-menu {
+  position: relative;
+}
+
+.profile-toggle {
+  background: none;
+  border: none;
   color: white;
   font-size: 1.2rem; /* Adjusted from 24px for better mobile scaling */
 }

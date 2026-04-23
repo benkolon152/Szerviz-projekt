@@ -6,6 +6,8 @@
   let isProfileOpen = false;
   let isLoggedIn = false;
   let displayName = "Profile";
+  let isAdmin = false;
+  let canViewInventory = false;
 
   onMount(() => {
     const rawUser = localStorage.getItem("user");
@@ -15,8 +17,12 @@
       try {
         const parsedUser = JSON.parse(rawUser);
         displayName = parsedUser?.username || "Profile";
+        isAdmin = Boolean(parsedUser?.isadmin);
+        canViewInventory = isAdmin || Boolean(parsedUser?.isemployee);
       } catch {
         displayName = "Profile";
+        isAdmin = false;
+        canViewInventory = false;
       }
     }
   });
@@ -33,6 +39,8 @@
       localStorage.removeItem("user");
       isLoggedIn = false;
       displayName = "Profile";
+      isAdmin = false;
+      canViewInventory = false;
     }
 
     isProfileOpen = false;
@@ -48,10 +56,16 @@
       ☰
     </button>
     
-    <ul class:open={isOpen}>
+    <ul class="nav-links" class:open={isOpen}>
       <li><a href="/"><b>Home</b></a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild">Pc builder</a></li>
+      {#if isAdmin}
+        <li><a href="/users">Users</a></li>
+      {/if}
+      {#if canViewInventory}
+        <li><a href="/inventory">Inventory</a></li>
+      {/if}
       <li class="profile-dropdown">
         <button class="dropdown-trigger" on:click={toggleProfile}>
           {displayName} ▾
