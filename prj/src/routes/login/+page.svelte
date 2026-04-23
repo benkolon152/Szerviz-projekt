@@ -23,9 +23,9 @@
         localStorage.setItem("user", JSON.stringify(data.user));
         // Check user role and redirect accordingly
         if (data.user?.isadmin) {
-          goto("/admin");
+          goto("/users");
         } else if (data.user?.isemployee) {
-          goto("/employee");
+          goto("/inventory");
         } else {
           goto("/");
         }
