@@ -48,7 +48,7 @@
       ☰
     </button>
     
-    <ul class:open={isOpen}>
+    <ul class="nav-links" class:open={isOpen}>
       <li><a href="/"><b>Home</b></a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild">Pc builder</a></li>

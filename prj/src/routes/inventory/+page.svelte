@@ -15,7 +15,7 @@
       ☰
     </button>
     <!--TODO this should be on the left side-->
-    <ul class:open={isOpen}>
+    <ul class="nav-links" class:open={isOpen}>
       <li><a href="/">Home</a></li>
       <li><a href="/inventory"><b>Inventory</b></a></li>
       <li><a href="/users">Users</a></li>
