@@ -1,12 +1,30 @@
 <script>
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+
   let isOpen = false;
   let isProfileOpen = false;
+  let isLoggedIn = false;
+
+  onMount(() => {
+    isLoggedIn = Boolean(localStorage.getItem("user"));
+  });
 
   function toggle() {
     isOpen = !isOpen;
   }
   function toggleProfile() {
     isProfileOpen = !isProfileOpen;
+  }
+
+  function handleAuthAction() {
+    if (isLoggedIn) {
+      localStorage.removeItem("user");
+      isLoggedIn = false;
+    }
+
+    isProfileOpen = false;
+    goto("/login");
   }
 </script>
 
@@ -22,8 +40,6 @@
       <li><a href="/"><b>Home</b></a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild">Pc builder</a></li>
-      <li><a href="/">Profile</a></li> 
-      <li><a href="/login">Login</a></li>
       <li class="profile-dropdown">
         <button class="dropdown-trigger" on:click={toggleProfile}>
           Profile ▾
@@ -34,7 +50,9 @@
             <a href="/profile">My Account</a>
             <a href="/orders">Orders</a>
             <hr />
-            <a href="/logout" class="logout">Logout</a>
+            <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
+              {isLoggedIn ? "Logout" : "Login"}
+            </button>
           </div>
         {/if}
       </li>
