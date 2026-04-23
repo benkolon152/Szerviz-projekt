@@ -1,8 +1,12 @@
 <script>
   let isOpen = false;
+  let isProfileOpen = false;
 
   function toggle() {
     isOpen = !isOpen;
+  }
+  function toggleProfile() {
+    isProfileOpen = !isProfileOpen;
   }
 </script>
 
@@ -16,11 +20,24 @@
     
     <ul class:open={isOpen}>
       <li><a href="/"><b>Home</b></a></li>
-      <li><a href="/"><b>Home</b></a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild">Pc builder</a></li>
       <li><a href="/">Profile</a></li> 
       <li><a href="/login">Login</a></li>
+      <li class="profile-dropdown">
+        <button class="dropdown-trigger" on:click={toggleProfile}>
+          Profile ▾
+        </button>
+        
+        {#if isProfileOpen}
+          <div class="dropdown-menu">
+            <a href="/profile">My Account</a>
+            <a href="/orders">Orders</a>
+            <hr />
+            <a href="/logout" class="logout">Logout</a>
+          </div>
+        {/if}
+      </li>
     </ul>
   </div>
 </nav>
