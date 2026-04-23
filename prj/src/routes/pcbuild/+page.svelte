@@ -66,11 +66,9 @@
     "Processzor léghűtő": ["Noctua NH-D15"],
     "Processzor vízhűtő": ["NZXT Kraken 360"],
     "Monitor": ["ASUS TUF Gaming 27"],
-    "Billentyűzet és egér": ["Logitech MK270 Combo"],
     "Billentyűzet": ["Keychron Q1 V2"],
     "Egér": ["Logitech G Pro X Superlight"],
     "Operációs rendszer": ["Windows 11 Home"],
-    "Irodai alkalmazás": ["Microsoft Office 2021"],
     "Biztonsági szoftver": ["ESET Internet Security"]
   };
 
@@ -162,13 +160,10 @@
 
   <h3 class="section-title">EXTRÁK</h3>
   <div class="builder-section">
-    <div class="builder-row"><span>Monitor</span> <button class="btn-add" on:click={() => openModal("Monitor")}>Hozzáadás +</button></div>
-    <div class="builder-row"><span>Billentyűzet és egér</span> <button class="btn-add" on:click={() => openModal("Billentyűzet és egér")}>Hozzáadás +</button></div>
-    <div class="builder-row"><span>Billentyűzet</span> <button class="btn-add" on:click={() => openModal("Billentyűzet")}>Hozzáadás +</button></div>
-    <div class="builder-row"><span>Egér</span> <button class="btn-add" on:click={() => openModal("Egér")}>Hozzáadás +</button></div>
-    <div class="builder-row"><span>Operációs rendszer</span> <button class="btn-add" on:click={() => openModal("Operációs rendszer")}>Hozzáadás +</button></div>
-    <div class="builder-row"><span>Irodai alkalmazás</span> <button class="btn-add" on:click={() => openModal("Irodai alkalmazás")}>Hozzáadás +</button></div>
-    <div class="builder-row"><span>Biztonsági szoftver</span> <button class="btn-add" on:click={() => openModal("Biztonsági szoftver")}>Hozzáadás +</button></div>
+    <div class="builder-row"><span>Monitor</span> <button class="btn-add">Hozzáadás +</button></div>
+    <div class="builder-row"><span>Billentyűzet</span> <button class="btn-add">Hozzáadás +</button></div>
+    <div class="builder-row"><span>Egér</span> <button class="btn-add">Hozzáadás +</button></div>
+    <div class="builder-row"><span>Operációs rendszer</span> <button class="btn-add">Hozzáadás +</button></div>
   </div>
 
   <h3 class="section-title">SZOLGÁLTATÁSOK</h3>
@@ -208,7 +203,7 @@
         <span>Összesen</span>
         <strong>{formatPrice(total)}</strong>
       </div>
-      <button class="btn-buy">Megveszem</button>
+      <button class="btn-buy">Kosárba</button>
     </div>
   </div>
 

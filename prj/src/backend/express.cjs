@@ -21,6 +21,16 @@ function quoteIdentifier(identifier) {
   return `"${String(identifier).replace(/"/g, '""')}"`;
 }
 
+async function ensureUserProfileColumns() {
+  await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS pfp TEXT,
+    ADD COLUMN IF NOT EXISTS city TEXT,
+    ADD COLUMN IF NOT EXISTS postal_code INTEGER,
+    ADD COLUMN IF NOT EXISTS house_number TEXT
+  `);
+}
+
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 
@@ -206,6 +216,8 @@ app.get("/api/users/:id/profile", async (req, res) => {
   }
 
   try {
+    await ensureUserProfileColumns();
+
     const result = await pool.query(
       "SELECT id, username, useremail, pfp, city, postal_code, house_number FROM users WHERE id = $1 LIMIT 1",
       [userId],
@@ -230,53 +242,41 @@ app.put("/api/users/:id/profile", async (req, res) => {
     return res.status(400).json({ message: "Invalid user id" });
   }
 
-  const normalizedEmail = (email || "").trim().toLowerCase();
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+
   if (!normalizedEmail) {
     return res.status(400).json({ message: "Email is required" });
   }
 
-  if (postal_code !== null && postal_code !== undefined) {
-    const parsedPostalCode = Number(postal_code);
-    if (!Number.isInteger(parsedPostalCode) || parsedPostalCode < 0) {
-      return res
-        .status(400)
-        .json({ message: "postal_code must be a non-negative integer" });
-    }
-  }
-
   try {
-    const existingUserWithEmail = await pool.query(
-      "SELECT id FROM users WHERE LOWER(useremail) = LOWER($1) AND id <> $2 LIMIT 1",
-      [normalizedEmail, userId],
-    );
+    await ensureUserProfileColumns();
 
-    if (existingUserWithEmail.rowCount > 0) {
-      return res
-        .status(409)
-        .json({ message: "An account with this email already exists" });
-    }
-
-    const result = await pool.query(
-      "UPDATE users SET useremail = $1, pfp = $2, city = $3, postal_code = $4, house_number = $5 WHERE id = $6 RETURNING id, username, useremail, pfp, city, postal_code, house_number",
+    const updatedUser = await pool.query(
+      `
+        UPDATE users
+        SET useremail = $1,
+            pfp = $2,
+            city = $3,
+            postal_code = $4,
+            house_number = $5
+        WHERE id = $6
+        RETURNING id, username, useremail, pfp, city, postal_code, house_number
+      `,
       [
         normalizedEmail,
-        (pfp || "").trim() || null,
-        (city || "").trim() || null,
-        postal_code === null || postal_code === undefined || postal_code === ""
-          ? null
-          : Number(postal_code),
-        (house_number || "").trim() || null,
+        String(pfp || "").trim(),
+        String(city || "").trim(),
+        postal_code === null || postal_code === undefined || postal_code === "" ? null : Number(postal_code),
+        String(house_number || "").trim(),
         userId,
       ],
     );
 
-    if (result.rowCount === 0) {
+    if (updatedUser.rowCount === 0) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res
-      .status(200)
-      .json({ message: "Profile updated successfully", user: result.rows[0] });
+    res.status(200).json({ message: "Profile updated successfully", user: updatedUser.rows[0] });
   } catch (error) {
     console.error("Error updating user profile:", error);
     res.status(500).json({ message: "Error updating user profile" });
@@ -285,47 +285,61 @@ app.put("/api/users/:id/profile", async (req, res) => {
 
 app.get("/api/inventory", async (req, res) => {
   try {
-    const columnsResult = await pool.query(
-      "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 ORDER BY ordinal_position ASC",
-      [INVENTORY_TABLE],
-    );
-    const columnNames = columnsResult.rows.map((row) => row.column_name);
-
-    if (columnNames.length === 0) {
-      return res.status(404).json({
-        message: `Inventory table '${INVENTORY_TABLE}' was not found in schema public.`,
-      });
-    }
-
-    const selectedColumns = columnNames.filter(
-      (columnName) => !INVENTORY_EXCLUDED_COLUMNS.has(columnName),
+    const result = await pool.query(
+      `
+        SELECT id, category, brand, model, price_huf, image_url
+        FROM ${INVENTORY_TABLE}
+        ORDER BY id ASC
+      `,
     );
 
-    if (selectedColumns.length === 0) {
-      return res.status(500).json({
-        message: "No inventory columns available after exclusions.",
-      });
-    }
-
-    const hasSortOrder = selectedColumns.includes("sort_order");
-    const hasId = selectedColumns.includes("id");
-
-    let orderByClause = "";
-    if (hasSortOrder && hasId) {
-      orderByClause = " ORDER BY sort_order ASC NULLS LAST, id ASC";
-    } else if (hasSortOrder) {
-      orderByClause = " ORDER BY sort_order ASC NULLS LAST";
-    } else if (hasId) {
-      orderByClause = " ORDER BY id ASC";
-    }
-
-    const query = `SELECT ${selectedColumns.map(quoteIdentifier).join(", ")} FROM ${quoteIdentifier(INVENTORY_TABLE)}${orderByClause}`;
-
-    const result = await pool.query(query);
     res.status(200).json({ items: result.rows });
   } catch (error) {
     console.error("Error fetching inventory:", error);
     res.status(500).json({ message: "Error fetching inventory" });
+  }
+});
+
+app.post("/api/inventory", async (req, res) => {
+  const { name, category, brand, model, price_huf, image_url } = req.body;
+
+  if (!name || !category || !brand || !model || price_huf === undefined || price_huf === null) {
+    return res.status(400).json({ message: "Name, category, brand, model and price are required" });
+  }
+
+  try {
+    const nextSortOrderResult = await pool.query(
+      `SELECT COALESCE(MAX(sort_order), 0) + 1 AS next_sort_order FROM ${INVENTORY_TABLE}`,
+    );
+    const nextSortOrder = Number(nextSortOrderResult.rows[0]?.next_sort_order || 1);
+
+    const createdItem = await pool.query(
+      `
+        INSERT INTO ${INVENTORY_TABLE} (category, name, sort_order, brand, model, price_huf, image_url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (category, name) DO UPDATE
+        SET brand = EXCLUDED.brand,
+            model = EXCLUDED.model,
+            price_huf = EXCLUDED.price_huf,
+            image_url = EXCLUDED.image_url,
+            updated_at = NOW()
+        RETURNING id, category, name, brand, model, price_huf, image_url
+      `,
+      [
+        String(category).trim(),
+        String(name).trim(),
+        nextSortOrder,
+        String(brand).trim(),
+        String(model).trim(),
+        Number(price_huf),
+        image_url ? String(image_url).trim() : null,
+      ],
+    );
+
+    res.status(201).json({ message: "Inventory item created successfully", item: createdItem.rows[0] });
+  } catch (error) {
+    console.error("Error creating inventory item:", error);
+    res.status(500).json({ message: "Error creating inventory item" });
   }
 });
 
@@ -338,7 +352,7 @@ app.delete("/api/inventory/:id", async (req, res) => {
 
   try {
     const deletedItem = await pool.query(
-      `DELETE FROM ${quoteIdentifier(INVENTORY_TABLE)} WHERE id = $1 RETURNING id`,
+      `DELETE FROM ${INVENTORY_TABLE} WHERE id = $1 RETURNING id`,
       [itemId],
     );
 
@@ -353,48 +367,21 @@ app.delete("/api/inventory/:id", async (req, res) => {
   }
 });
 
-app.post("/api/inventory", async (req, res) => {
-  const { name, category, brand, model, price_huf, image_url } = req.body;
-
-  // Validation
-  if (!name || !category || !brand || !model || price_huf === undefined) {
-    return res.status(400).json({
-      message: "Required fields: name, category, brand, model, price_huf",
-    });
-  }
-
-  const price = Number(price_huf);
-  if (!Number.isInteger(price) || price < 0) {
-    return res
-      .status(400)
-      .json({ message: "Price must be a valid positive number" });
-  }
-
+app.get("/api/shop/featured", async (req, res) => {
   try {
-    const finalImageUrl = image_url || null;
-
-    // Get the highest sort_order and add 1
-    const maxSortOrderResult = await pool.query(
-      `SELECT MAX(sort_order) as max_sort FROM ${quoteIdentifier(INVENTORY_TABLE)}`,
-    );
-    const newSortOrder = (maxSortOrderResult.rows[0]?.max_sort || 0) + 1;
-
     const result = await pool.query(
-      `INSERT INTO ${quoteIdentifier(INVENTORY_TABLE)} (name, category, brand, model, price_huf, image_url, sort_order) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
-       RETURNING id, name, category, brand, model, price_huf, image_url`,
-      [name, category, brand, model, price, finalImageUrl, newSortOrder],
+      `
+        SELECT category, name, price_huf, image_url, featured_shop_order, specifications
+        FROM pc_components
+        WHERE featured_shop = true
+        ORDER BY featured_shop_order ASC NULLS LAST, sort_order ASC
+      `,
     );
 
-    res.status(201).json({
-      message: "Inventory item created successfully",
-      item: result.rows[0],
-    });
+    res.status(200).json({ components: result.rows });
   } catch (error) {
-    console.error("Error creating inventory item:", error.message);
-    res
-      .status(500)
-      .json({ message: "Error creating inventory item: " + error.message });
+    console.error("Error fetching featured components:", error);
+    res.status(500).json({ message: "Error fetching featured components" });
   }
 });
 
