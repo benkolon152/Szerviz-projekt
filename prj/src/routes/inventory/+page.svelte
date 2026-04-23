@@ -8,6 +8,7 @@
   let isProfileOpen = false;
   let isLoggedIn = false;
   let displayName = "Profile";
+  let userPfp = "";
   let isAdmin = false;
   let canViewInventory = false;
 
@@ -55,6 +56,7 @@
 
     if (!rawUser) {
       displayName = "Profile";
+      userPfp = "";
       isAdmin = false;
       canViewInventory = false;
       await fetchInventory();
@@ -64,10 +66,12 @@
     try {
       const parsedUser = JSON.parse(rawUser);
       displayName = parsedUser?.username || "Profile";
+      userPfp = parsedUser?.pfp || "";
       isAdmin = Boolean(parsedUser?.isadmin);
       canViewInventory = isAdmin || Boolean(parsedUser?.isemployee);
     } catch {
       displayName = "Profile";
+      userPfp = "";
       isAdmin = false;
       canViewInventory = false;
     }
@@ -88,6 +92,7 @@
       localStorage.removeItem("user");
       isLoggedIn = false;
       displayName = "Profile";
+      userPfp = "";
       isAdmin = false;
       canViewInventory = false;
     }
@@ -290,6 +295,9 @@
 
       <li class="profile-dropdown">
         <button class="dropdown-trigger" on:click={toggleProfile}>
+          {#if userPfp}
+            <img src={userPfp} alt="Profilkép" style="width:22px;height:22px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;" />
+          {/if}
           {displayName} ▾
         </button>
 

@@ -99,6 +99,7 @@ app.post("/api/login", async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.useremail,
+        pfp: user.pfp,
         isadmin: user.isadmin,
         isemployee: user.isemployee,
       },

@@ -166,6 +166,7 @@
         try {
           const parsedUser = JSON.parse(rawUser);
           parsedUser.email = normalizedEmail;
+          parsedUser.pfp = pfp;
           localStorage.setItem("user", JSON.stringify(parsedUser));
         } catch {
           // ignore localStorage parse issues
@@ -201,6 +202,9 @@
       {/if}
       <li class="profile-dropdown">
         <button class="dropdown-trigger" on:click={toggleProfile}>
+          {#if pfp}
+            <img src={pfp} alt="Profilkép" style="width:22px;height:22px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;" />
+          {/if}
           {displayName} ▾
         </button>
 
