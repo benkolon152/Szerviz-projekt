@@ -5,9 +5,20 @@
   let isOpen = false;
   let isProfileOpen = false;
   let isLoggedIn = false;
+  let displayName = "Profile";
 
   onMount(() => {
-    isLoggedIn = Boolean(localStorage.getItem("user"));
+    const rawUser = localStorage.getItem("user");
+    isLoggedIn = Boolean(rawUser);
+
+    if (rawUser) {
+      try {
+        const parsedUser = JSON.parse(rawUser);
+        displayName = parsedUser?.username || "Profile";
+      } catch {
+        displayName = "Profile";
+      }
+    }
   });
 
   function toggle() {
@@ -21,6 +32,7 @@
     if (isLoggedIn) {
       localStorage.removeItem("user");
       isLoggedIn = false;
+      displayName = "Profile";
     }
 
     isProfileOpen = false;
@@ -42,7 +54,7 @@
       <li><a href="/pcbuild">Pc builder</a></li>
       <li class="profile-dropdown">
         <button class="dropdown-trigger" on:click={toggleProfile}>
-          Profile ▾
+          {displayName} ▾
         </button>
         
         {#if isProfileOpen}
