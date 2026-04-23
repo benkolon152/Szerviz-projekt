@@ -1,8 +1,51 @@
 <script>
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+
   let isOpen = false;
+  let isProfileOpen = false;
+  let isLoggedIn = false;
+  let displayName = "Profile";
+  let isAdmin = false;
+  let canViewInventory = false;
+
+  onMount(() => {
+    const rawUser = localStorage.getItem("user");
+    isLoggedIn = Boolean(rawUser);
+
+    if (rawUser) {
+      try {
+        const parsedUser = JSON.parse(rawUser);
+        displayName = parsedUser?.username || "Profile";
+        isAdmin = Boolean(parsedUser?.isadmin);
+        canViewInventory = isAdmin || Boolean(parsedUser?.isemployee);
+      } catch {
+        displayName = "Profile";
+        isAdmin = false;
+        canViewInventory = false;
+      }
+    }
+  });
 
   function toggle() {
     isOpen = !isOpen;
+  }
+
+  function toggleProfile() {
+    isProfileOpen = !isProfileOpen;
+  }
+
+  function handleAuthAction() {
+    if (isLoggedIn) {
+      localStorage.removeItem("user");
+      isLoggedIn = false;
+      displayName = "Profile";
+      isAdmin = false;
+      canViewInventory = false;
+    }
+
+    isProfileOpen = false;
+    goto("/login");
   }
 
   // Szolgáltatások állapotai és árai
@@ -37,8 +80,28 @@
       <li><a href="/">Home</a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild"><b>Pc builder</b></a></li>
-      <li><a href="/">Profile</a></li>
-      <li><a href="/login">Login</a></li>
+      {#if isAdmin}
+        <li><a href="/users">Users</a></li>
+      {/if}
+      {#if canViewInventory}
+        <li><a href="/inventory">Inventory</a></li>
+      {/if}
+      <li class="profile-dropdown">
+        <button class="dropdown-trigger" on:click={toggleProfile}>
+          {displayName} ▾
+        </button>
+
+        {#if isProfileOpen}
+          <div class="dropdown-menu">
+            <a href="/profile">My Account</a>
+            <a href="/orders">Orders</a>
+            <hr />
+            <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
+              {isLoggedIn ? "Logout" : "Login"}
+            </button>
+          </div>
+        {/if}
+      </li>
     </ul>
   </div>
 </nav>

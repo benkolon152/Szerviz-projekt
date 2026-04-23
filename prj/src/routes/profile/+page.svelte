@@ -1,8 +1,55 @@
 <script>
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+
   let isOpen = false;
+  let isProfileOpen = false;
+  let isLoggedIn = false;
+  let displayName = "Profile";
+  let userEmail = "";
+  let isAdmin = false;
+  let canViewInventory = false;
+
+  onMount(() => {
+    const rawUser = localStorage.getItem("user");
+    isLoggedIn = Boolean(rawUser);
+
+    if (rawUser) {
+      try {
+        const parsedUser = JSON.parse(rawUser);
+        displayName = parsedUser?.username || "Profile";
+        userEmail = parsedUser?.email || "";
+        isAdmin = Boolean(parsedUser?.isadmin);
+        canViewInventory = isAdmin || Boolean(parsedUser?.isemployee);
+      } catch {
+        displayName = "Profile";
+        userEmail = "";
+        isAdmin = false;
+        canViewInventory = false;
+      }
+    }
+  });
 
   function toggle() {
     isOpen = !isOpen;
+  }
+
+  function toggleProfile() {
+    isProfileOpen = !isProfileOpen;
+  }
+
+  function handleAuthAction() {
+    if (isLoggedIn) {
+      localStorage.removeItem("user");
+      isLoggedIn = false;
+      displayName = "Profile";
+      userEmail = "";
+      isAdmin = false;
+      canViewInventory = false;
+    }
+
+    isProfileOpen = false;
+    goto("/login");
   }
 </script>
 
@@ -19,15 +66,38 @@
       <li><a href="/">Home</a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild">Pc builder</a></li>
+      {#if isAdmin}
+        <li><a href="/users">Users</a></li>
+      {/if}
+      {#if canViewInventory}
+        <li><a href="/inventory">Inventory</a></li>
+      {/if}
+      <li class="profile-dropdown">
+        <button class="dropdown-trigger" on:click={toggleProfile}>
+          {displayName} ▾
+        </button>
 
-      <!-- stay on the right-->
-      <li><a href="/"><b>Profile</b></a></li> <!-- TODO profile dropwdown menu-->
-      <li><a href="/login">Login</a></li>
+        {#if isProfileOpen}
+          <div class="dropdown-menu">
+            <a href="/profile"><b>My Account</b></a>
+            <a href="/orders">Orders</a>
+            <hr />
+            <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
+              {isLoggedIn ? "Logout" : "Login"}
+            </button>
+          </div>
+        {/if}
+      </li>
     </ul>
   </div>
 </nav>
 
 <h1 class="inv_h" style="text-align: center;">Profilod</h1>
+{#if isLoggedIn}
+  <p style="text-align: center; margin-top: -10px; opacity: 0.85;">Bejelentkezve mint: {displayName}{userEmail ? ` (${userEmail})` : ""}</p>
+{:else}
+  <p style="text-align: center; margin-top: -10px; opacity: 0.85;">Nem vagy bejelentkezve.</p>
+{/if}
 <div class="profile">
     <div class="hbox">
         <div class="pdata"><!--TODO formot allitva rendezni-->

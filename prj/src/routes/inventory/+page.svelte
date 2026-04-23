@@ -1,8 +1,46 @@
 <script>
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+
   let isOpen = false;
+  let isProfileOpen = false;
+  let isLoggedIn = false;
+  let displayName = "Profile";
+  let isAdmin = false;
+
+  onMount(() => {
+    const rawUser = localStorage.getItem("user");
+    isLoggedIn = Boolean(rawUser);
+    if (!rawUser) return;
+
+    try {
+      const parsedUser = JSON.parse(rawUser);
+      displayName = parsedUser?.username || "Profile";
+      isAdmin = Boolean(parsedUser?.isadmin);
+    } catch {
+      displayName = "Profile";
+      isAdmin = false;
+    }
+  });
 
   function toggle() {
     isOpen = !isOpen;
+  }
+
+  function toggleProfile() {
+    isProfileOpen = !isProfileOpen;
+  }
+
+  function handleAuthAction() {
+    if (isLoggedIn) {
+      localStorage.removeItem("user");
+      isLoggedIn = false;
+      displayName = "Profile";
+      isAdmin = false;
+    }
+
+    isProfileOpen = false;
+    goto("/login");
   }
 </script>
 
@@ -17,11 +55,29 @@
     <!--TODO this should be on the left side-->
     <ul class="nav-links" class:open={isOpen}>
       <li><a href="/">Home</a></li>
+      <li><a href="/shop">Store</a></li>
+      <li><a href="/pcbuild">Pc builder</a></li>
+      {#if isAdmin}
+        <li><a href="/users">Users</a></li>
+      {/if}
       <li><a href="/inventory"><b>Inventory</b></a></li>
-      <li><a href="/users">Users</a></li>
 
-      <li><a href="/">Profile</a></li> <!-- TODO profile dropwdown menu-->
-      <li><a href="/login">Login</a></li>
+      <li class="profile-dropdown">
+        <button class="dropdown-trigger" on:click={toggleProfile}>
+          {displayName} ▾
+        </button>
+
+        {#if isProfileOpen}
+          <div class="dropdown-menu">
+            <a href="/profile">My Account</a>
+            <a href="/orders">Orders</a>
+            <hr />
+            <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
+              {isLoggedIn ? "Logout" : "Login"}
+            </button>
+          </div>
+        {/if}
+      </li>
     </ul>
   </div>
 </nav>
