@@ -10,8 +10,19 @@ const pool = new pg.Pool({
 const app = express();
 const PORT = 3001;
 
+const INVENTORY_TABLE = "pc_components";
+const INVENTORY_EXCLUDED_COLUMNS = new Set([
+  "created_at",
+  "updated_at",
+  "specifications",
+]);
+
+function quoteIdentifier(identifier) {
+  return `"${String(identifier).replace(/"/g, '""')}"`;
+}
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
 
 app.post("/api/register", async (req, res) => {
   const { username, email, password } = req.body;
@@ -88,6 +99,7 @@ app.post("/api/login", async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.useremail,
+        pfp: user.pfp,
         isadmin: user.isadmin,
         isemployee: user.isemployee,
       },
@@ -101,7 +113,7 @@ app.post("/api/login", async (req, res) => {
 app.get("/api/users", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, username, useremail, isemployee, isadmin FROM users ORDER BY id ASC",
+      "SELECT id, username, useremail, pfp, isemployee, isadmin FROM users ORDER BY id ASC",
     );
     res.status(200).json({ users: result.rows });
   } catch (error) {
@@ -118,7 +130,9 @@ app.post("/api/users", async (req, res) => {
     const normalizedEmail = (email || "").trim().toLowerCase();
 
     if (!normalizedUsername || !normalizedEmail || !password) {
-      return res.status(400).json({ message: "Username, email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Username, email and password are required" });
     }
 
     const existingUser = await pool.query(
@@ -127,19 +141,32 @@ app.post("/api/users", async (req, res) => {
     );
 
     if (existingUser.rowCount > 0) {
-      return res.status(409).json({ message: "An account with this email already exists" });
+      return res
+        .status(409)
+        .json({ message: "An account with this email already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const createdUser = await pool.query(
       "INSERT INTO users (username, useremail, pw, isemployee, isadmin) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, useremail, isemployee, isadmin",
-      [normalizedUsername, normalizedEmail, hashedPassword, Boolean(isemployee), Boolean(isadmin)],
+      [
+        normalizedUsername,
+        normalizedEmail,
+        hashedPassword,
+        Boolean(isemployee),
+        Boolean(isadmin),
+      ],
     );
 
-    res.status(201).json({ message: "User created successfully", user: createdUser.rows[0] });
+    res.status(201).json({
+      message: "User created successfully",
+      user: createdUser.rows[0],
+    });
   } catch (error) {
     if (error.code === "23505") {
-      return res.status(409).json({ message: "An account with this email already exists" });
+      return res
+        .status(409)
+        .json({ message: "An account with this email already exists" });
     }
 
     console.error("Error creating user:", error);

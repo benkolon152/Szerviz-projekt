@@ -6,6 +6,7 @@
   let isProfileOpen = false;
   let isLoggedIn = false;
   let displayName = "Profile";
+  let userPfp = "";
   let canViewInventory = false;
 
   onMount(() => {
@@ -16,9 +17,11 @@
     try {
       const parsedUser = JSON.parse(rawUser);
       displayName = parsedUser?.username || "Profile";
+      userPfp = parsedUser?.pfp || "";
       canViewInventory = Boolean(parsedUser?.isadmin) || Boolean(parsedUser?.isemployee);
     } catch {
       displayName = "Profile";
+      userPfp = "";
       canViewInventory = false;
     }
   });
@@ -36,6 +39,7 @@
       localStorage.removeItem("user");
       isLoggedIn = false;
       displayName = "Profile";
+      userPfp = "";
       canViewInventory = false;
     }
 
@@ -63,6 +67,9 @@
 
       <li class="profile-dropdown">
         <button class="dropdown-trigger" on:click={toggleProfile}>
+          {#if userPfp}
+            <img src={userPfp} alt="Profilkép" style="width:22px;height:22px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;" />
+          {/if}
           {displayName} ▾
         </button>
 
