@@ -21,7 +21,14 @@
 
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
-        goto("/");
+        // Check user role and redirect accordingly
+        if (data.user?.isadmin) {
+          goto("/admin");
+        } else if (data.user?.isemployee) {
+          goto("/employee");
+        } else {
+          goto("/");
+        }
       }
     } catch (error) {
       console.error("Error:", error);
