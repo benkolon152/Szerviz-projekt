@@ -44,7 +44,7 @@
   <div class="nav-container">
     <a href="/" class="logo">MyApp</a>
 
-    <button class="hamburger" type="button" on:click={toggle}>
+    <button class="hamburger" on:click={toggle}>
       ☰
     </button>
     
