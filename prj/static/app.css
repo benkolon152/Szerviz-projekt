@@ -457,6 +457,152 @@ body {
   color: #ff4d4d !important; /* Slight red tint for logout */
 }
 
+/* ----------------------------Users---------------------------- */
+.users-page {
+  width: min(1200px, 92vw);
+  margin: 40px auto;
+}
+
+.users-header h1 {
+  margin: 0 0 8px 0;
+}
+
+.users-header p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.users-grid {
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.users-panel {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.users-panel h2 {
+  margin-top: 0;
+}
+
+.users-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.users-form input,
+.users-form select {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.users-form select {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.users-form select option {
+  background: #1d0727;
+  color: white;
+}
+
+.users-form button,
+.users-list-header button,
+.user-card button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: white;
+  cursor: pointer;
+}
+
+.users-form button {
+  background: #2e9d66;
+}
+
+.users-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.users-list-header .secondary {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.users-list {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.user-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.user-main {
+  flex: 1;
+}
+
+.user-main h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.user-main p {
+  margin: 3px 0 8px 0;
+  opacity: 0.8;
+  word-break: break-word;
+}
+
+.role-chip {
+  display: inline-block;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.user-card .danger {
+  background: #bb3f50;
+}
+
+.users-alert {
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 80, 80, 0.35);
+  background: rgba(120, 10, 10, 0.25);
+}
+
+.users-message {
+  margin-top: 16px;
+  opacity: 0.95;
+}
+
 /* ----------------------------MEDIA QUERIES---------------------------- */
 @media (max-width: 768px) {
   .dropdown-menu {
@@ -498,5 +644,9 @@ body {
   .footer .links {
     justify-content: center;
     gap: 30px;
+  }
+
+  .users-grid {
+    grid-template-columns: 1fr;
   }
 }

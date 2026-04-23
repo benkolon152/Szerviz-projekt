@@ -98,14 +98,77 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+app.get("/api/users", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, username, useremail, isemployee, isadmin FROM users ORDER BY id ASC",
+    );
+    res.status(200).json({ users: result.rows });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Error fetching users" });
+  }
+});
+
 app.post("/api/users", async (req, res) => {
-  pool.query("SELECT * FROM users", (err, result) => {
-    if (err) {
-      res.status(500).json({ error: err });
-    } else {
-      res.status(200).json({ result: result });
+  const { username, email, password, isemployee, isadmin } = req.body;
+
+  try {
+    const normalizedUsername = (username || "").trim();
+    const normalizedEmail = (email || "").trim().toLowerCase();
+
+    if (!normalizedUsername || !normalizedEmail || !password) {
+      return res.status(400).json({ message: "Username, email and password are required" });
     }
-  });
+
+    const existingUser = await pool.query(
+      "SELECT 1 FROM users WHERE LOWER(useremail) = LOWER($1) LIMIT 1",
+      [normalizedEmail],
+    );
+
+    if (existingUser.rowCount > 0) {
+      return res.status(409).json({ message: "An account with this email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const createdUser = await pool.query(
+      "INSERT INTO users (username, useremail, pw, isemployee, isadmin) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, useremail, isemployee, isadmin",
+      [normalizedUsername, normalizedEmail, hashedPassword, Boolean(isemployee), Boolean(isadmin)],
+    );
+
+    res.status(201).json({ message: "User created successfully", user: createdUser.rows[0] });
+  } catch (error) {
+    if (error.code === "23505") {
+      return res.status(409).json({ message: "An account with this email already exists" });
+    }
+
+    console.error("Error creating user:", error);
+    res.status(500).json({ message: "Error creating user" });
+  }
+});
+
+app.delete("/api/users/:id", async (req, res) => {
+  const userId = Number(req.params.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ message: "Invalid user id" });
+  }
+
+  try {
+    const deletedUser = await pool.query(
+      "DELETE FROM users WHERE id = $1 RETURNING id",
+      [userId],
+    );
+
+    if (deletedUser.rowCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "Error deleting user" });
+  }
 });
 
 app.use((err, req, res, next) => {
