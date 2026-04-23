@@ -1,4 +1,4 @@
-<script>
+    <script>
   let isOpen = false;
 
   let sortOpen = false;

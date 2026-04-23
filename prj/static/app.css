@@ -1,5 +1,6 @@
 * {
   font-family: "Jura", sans-serif;
+  box-sizing: border-box; /* Ensures padding doesn't affect overall width */
 }
 
 body {
@@ -7,7 +8,6 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   color: white;
-
   background: linear-gradient(135deg, #5a005a 0%, #3b0050 40%, #1a0033 100%);
 }
 
@@ -18,6 +18,7 @@ body {
   color: white;
 }
 
+/* ---------------------------Flex Utilities--------------------------- */
 .hbox {
   display: flex;
   flex-direction: row;
@@ -30,8 +31,11 @@ body {
   gap: 20px;
 }
 
-/* ---------------------------Navbar--------------------------- */
+.wrap {
+  flex-wrap: wrap;
+}
 
+/* ---------------------------Navbar--------------------------- */
 .navbar {
   background: #11111139;
   color: white;
@@ -43,8 +47,9 @@ body {
 
 .nav-container {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
@@ -53,6 +58,10 @@ body {
 .nav-links {
   background: none;
   list-style: none;
+  background: none;
+  border-radius: 20px;
+  padding: 0;
+  gap: 10px;
   display: flex;
   gap: 10px;
   flex-direction: row;
@@ -74,7 +83,7 @@ body {
 .nav-links > li a {
   text-decoration: none;
   color: white;
-  font-size: 24px;
+  font-size: 1.2rem; /* Adjusted from 24px for better mobile scaling */
 }
 
 .profile-menu {
@@ -85,51 +94,7 @@ body {
   background: none;
   border: none;
   color: white;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 0;
-}
-
-.profile-dropdown {
-  display: none;
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 200px;
-  padding: 0.5rem;
-  margin: 0;
-  background: rgba(17, 17, 17, 0.95);
-  border-radius: 16px;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
-  flex-direction: column;
-  z-index: 20;
-}
-
-.profile-dropdown.open {
-  display: flex;
-}
-
-.profile-dropdown li {
-  padding: 0;
-}
-
-.profile-dropdown li:hover {
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: none;
-}
-
-.profile-dropdown a,
-.profile-dropdown button {
-  display: block;
-  width: 100%;
-  padding: 0.55rem 0.75rem;
-  border: none;
-  background: none;
-  color: white;
-  text-decoration: none;
-  font-size: 16px;
-  text-align: left;
-  cursor: pointer;
+  font-size: 1.2rem; /* Adjusted from 24px for better mobile scaling */
 }
 
 .hamburger {
@@ -141,7 +106,7 @@ body {
   cursor: pointer;
 }
 
-/* ---------------------------Homepage--------------------------- */
+/* ---------------------------Homepage General--------------------------- */
 .home {
   display: flex;
   flex-direction: column;
@@ -149,44 +114,61 @@ body {
   text-align: center;
   margin: 0 auto;
   width: 90%;
+  max-width: 1200px;
+}
+
+.home .banner {
+  width: 100%;
+  height: clamp(200px, 40vw, 400px); /* Fluid height based on screen size */
+  object-fit: cover;
+  margin: 20px 0;
+  border-radius: 10px;
 }
 
 .home .cimek {
   text-align: left;
   width: 100%;
+  margin-top: 40px;
 }
 
-.home .cards-container {
+/* ---------------------------Cards Base (Highlights & PC Buildek)--------------------------- */
+.cards-container {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
   gap: 20px;
-  min-height: 400px;
 }
 
-.home .cards {
-  width: 256px;
-  height: 384px;
+.cards {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 350px; /* Fluid base width */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
 }
 
-.home .cards img {
-  width: 256px;
-  height: 256px;
+.cards .image {
+  width: 100%;
+  height: 200px;
   object-fit: cover;
-  border-radius: 5px;
 }
 
-.home .cards-content {
+.cards-content {
   text-align: left;
-  padding: 0 3px;
+  padding: 15px;
+  flex-grow: 1; /* Pushes content to fill remaining card space */
 }
 
-.home .cards h4 {
+.cards h4 {
   font-size: 18px;
-  margin-top: 10px;
+  margin: 0 0 10px 0;
 }
 
-.home .cards p {
+.cards p {
   color: rgb(171, 171, 171);
   margin: 0;
 }
@@ -194,59 +176,40 @@ body {
 /* ---------------------------PC BUILDEK--------------------------- */
 .pck {
   margin: 5px 0;
+  width: 100%;
 }
 
-.pck .cards-container {
+.grid-double {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   gap: 20px;
-  min-height: 400px;
-}
-
-.pck .cards {
-  width: 512px;
-  height: 256px;
-}
-
-.pck .cards img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 5px;
+  justify-content: center;
 }
 
-.pck .cards-content {
-  text-align: left;
-  padding: 0 3px;
-}
-
-.pck .cards h4 {
-  font-size: 18px;
-  margin-top: 10px;
-}
-
-.pck .cards p {
-  color: rgb(171, 171, 171);
-  margin: 0;
+.wide-card {
+  max-width: 550px; /* Wider limit for double-grid sections */
 }
 
 /* ----------------------------ABOUT-------------------------- */
 .about {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
+  align-items: center;
+  gap: 40px;
   width: 100%;
+  margin-top: 40px;
 }
 
 .about-content {
-  width: 600px;
+  flex: 1 1 400px; /* Text takes up available space but wraps at 400px */
   text-align: left;
 }
 
 .about-text h4 {
   font-size: 18px;
-  margin-top: 50px;
+  margin-top: 20px;
 }
 
 .about-text p {
@@ -254,32 +217,49 @@ body {
   margin: 0;
 }
 
-.about .image {
-  width: 500px;
-  height: 5 00px;
-  object-fit: cover;
-  border-radius: 5px;
+.about .image-container {
+  flex: 1 1 400px; /* Image container matches text wrapping rules */
+  display: flex;
+  justify-content: center;
 }
 
-/* ----------------------------REWIEWS---------------------------- */
+.about .image {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* ----------------------------REVIEWS---------------------------- */
+.rewiews {
+  width: 100%;
+}
+
 .rewiews .cards {
-  width: 300px;
-  height: 150px;
-  padding: 00px;
+  max-width: 320px;
+  padding: 20px;
   background: white;
   border-radius: 10px;
-  margin-bottom: 30px;
+  border: none;
 }
 
 .rewiews .comment {
   color: black !important;
-  font-size: 18px;
+  font-size: 16px;
+  flex-grow: 1;
+}
+
+.reviewer {
+  align-items: center;
 }
 
 /* ----------------------------FOOTER---------------------------- */
 .footer {
   width: 100vw;
-  padding: 20px 0px;
+  padding: 40px 0px;
+  margin-top: 50px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -289,11 +269,13 @@ body {
   flex-wrap: wrap;
   gap: 40px;
   width: 90%;
+  max-width: 1200px;
   margin: 0px auto;
 }
 
 .footer .links {
   display: flex;
+  flex-wrap: wrap;
   gap: 60px;
 }
 
@@ -403,23 +385,83 @@ min-width: 900px;
 
 
 /* -----------------------------Login---------------------------- */
+#reg {
+  text-decoration: none;
+}
 
 #reg:hover {
   color: rgb(112, 10, 152);
   text-decoration: none;
 }
 
-#reg {
-  text-decoration: none;
+.profile-dropdown {
+  position: relative;
+  display: inline-block;
 }
 
-/* ----------------------------Mobile---------------------------- */
+.dropdown-trigger {
+  background: none;
+  border: none;
+  color: white;
+  font-family: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #25003e; /* Matches your theme */
+  min-width: 160px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.4);
+  z-index: 1000;
+  border-radius: 8px;
+  margin-top: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu a {
+  color: white;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 0.9rem !important;
+  transition: background 0.2s;
+}
+
+.dropdown-menu a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu hr {
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0;
+}
+
+.logout {
+  color: #ff4d4d !important; /* Slight red tint for logout */
+}
+
+/* ----------------------------MEDIA QUERIES---------------------------- */
 @media (max-width: 768px) {
-  .hamburger {
-    display: block;
+  .dropdown-menu {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    background: rgba(0,0,0,0.2);
+    margin-top: 5px;
   }
 
-  .nav-links {
+  .hamburger {
+    display: block;
+    z-index: 100;
+  }
+
+  .navbar ul {
     position: absolute;
     top: 60px;
     right: 10px;
@@ -428,26 +470,22 @@ min-width: 900px;
     width: 200px;
     padding: 1rem;
     display: none;
-    border-radius: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    z-index: 99;
   }
 
-  .nav-links.open {
+  .navbar ul.open {
     display: flex;
   }
 
-  .nav-links > li {
-    width: 100%;
+  .footer-top {
+    flex-direction: column;
+    text-align: center;
   }
-
-  .profile-menu {
-    width: 100%;
-  }
-
-  .profile-dropdown {
-    position: static;
-    min-width: 100%;
-    margin-top: 0.5rem;
-    box-shadow: none;
-    background: rgba(0, 0, 0, 0.18);
+  
+  .footer .links {
+    justify-content: center;
+    gap: 30px;
   }
 }
