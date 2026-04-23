@@ -21,6 +21,7 @@
   let deletingId = null;
   let formMessage = "";
   let formSubmitting = false;
+  let inventoryImageDataUrl = "";
 
   $: categoryOptions = [
     "all",
@@ -171,6 +172,35 @@
     currentPage = 1;
   }
 
+  function handleInventoryImageUpload(event) {
+    const file = event.currentTarget?.files?.[0];
+    if (!file) {
+      inventoryImageDataUrl = "";
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      formMessage = "Csak képfájl tölthető fel.";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      formMessage = "A kép legfeljebb 5 MB lehet.";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        inventoryImageDataUrl = reader.result;
+      }
+    };
+    reader.onerror = () => {
+      formMessage = "Nem sikerült beolvasni a kiválasztott képet.";
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function handleAddInventoryItem(event) {
     event.preventDefault();
     formSubmitting = true;
@@ -202,7 +232,7 @@
           brand,
           model,
           price_huf,
-          image_url: null,  // Image upload not yet implemented
+          image_url: inventoryImageDataUrl || null,
         }),
       });
 
@@ -216,6 +246,7 @@
 
       formMessage = "✓ Termék sikeresen hozzáadva!";
       event.target.reset();
+      inventoryImageDataUrl = "";
       
       // Refresh inventory list
       await fetchInventory();
@@ -302,7 +333,13 @@
       <input class="item_price_input" type="number" id="price" name="price" min="0" step="1" required>
 
       <label for="image">Kep a termekrol:</label>
-      <input class="item_image_input" type="file" id="image" name="image" accept="image/*"><!-- TODO: implement actual image upload to storage -->
+      <input class="item_image_input" type="file" id="image" name="image" accept="image/*" on:change={handleInventoryImageUpload}>
+
+      {#if inventoryImageDataUrl}
+        <div class="inventory-upload-preview-wrap">
+          <img src={inventoryImageDataUrl} alt="Feltöltött kép előnézet" class="inventory-upload-preview" />
+        </div>
+      {/if}
 
       <div class="form-button-container">
         <button type="submit" disabled={formSubmitting}>
@@ -466,6 +503,18 @@
     align-items: center;
     gap: 12px;
     grid-column: 1 / -1;
+  }
+
+  .inventory-upload-preview-wrap {
+    grid-column: 1 / -1;
+  }
+
+  .inventory-upload-preview {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #d0d0d0;
   }
 
   .form-button-container button {

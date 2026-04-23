@@ -42,7 +42,10 @@
 		"svelte"
 	],
 	"dependencies": {
+		"@supabase/supabase-js": "^2.104.0",
 		"cors": "^2.8.6",
-		"express": "^5.2.1"
+		"csv-parse": "^6.2.1",
+		"express": "^5.2.1",
+		"pg": "^8.20.0"
 	}
 }

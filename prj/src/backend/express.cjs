@@ -112,7 +112,7 @@ app.post("/api/login", async (req, res) => {
 app.get("/api/users", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, username, useremail, isemployee, isadmin FROM users ORDER BY id ASC",
+      "SELECT id, username, useremail, pfp, isemployee, isadmin FROM users ORDER BY id ASC",
     );
     res.status(200).json({ users: result.rows });
   } catch (error) {
@@ -157,12 +157,10 @@ app.post("/api/users", async (req, res) => {
       ],
     );
 
-    res
-      .status(201)
-      .json({
-        message: "User created successfully",
-        user: createdUser.rows[0],
-      });
+    res.status(201).json({
+      message: "User created successfully",
+      user: createdUser.rows[0],
+    });
   } catch (error) {
     if (error.code === "23505") {
       return res
@@ -196,6 +194,91 @@ app.delete("/api/users/:id", async (req, res) => {
   } catch (error) {
     console.error("Error deleting user:", error);
     res.status(500).json({ message: "Error deleting user" });
+  }
+});
+
+app.get("/api/users/:id/profile", async (req, res) => {
+  const userId = Number(req.params.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ message: "Invalid user id" });
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT id, username, useremail, pfp, city, postal_code, house_number FROM users WHERE id = $1 LIMIT 1",
+      [userId],
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ user: result.rows[0] });
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({ message: "Error fetching user profile" });
+  }
+});
+
+app.put("/api/users/:id/profile", async (req, res) => {
+  const userId = Number(req.params.id);
+  const { email, pfp, city, postal_code, house_number } = req.body;
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ message: "Invalid user id" });
+  }
+
+  const normalizedEmail = (email || "").trim().toLowerCase();
+  if (!normalizedEmail) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  if (postal_code !== null && postal_code !== undefined) {
+    const parsedPostalCode = Number(postal_code);
+    if (!Number.isInteger(parsedPostalCode) || parsedPostalCode < 0) {
+      return res
+        .status(400)
+        .json({ message: "postal_code must be a non-negative integer" });
+    }
+  }
+
+  try {
+    const existingUserWithEmail = await pool.query(
+      "SELECT id FROM users WHERE LOWER(useremail) = LOWER($1) AND id <> $2 LIMIT 1",
+      [normalizedEmail, userId],
+    );
+
+    if (existingUserWithEmail.rowCount > 0) {
+      return res
+        .status(409)
+        .json({ message: "An account with this email already exists" });
+    }
+
+    const result = await pool.query(
+      "UPDATE users SET useremail = $1, pfp = $2, city = $3, postal_code = $4, house_number = $5 WHERE id = $6 RETURNING id, username, useremail, pfp, city, postal_code, house_number",
+      [
+        normalizedEmail,
+        (pfp || "").trim() || null,
+        (city || "").trim() || null,
+        postal_code === null || postal_code === undefined || postal_code === ""
+          ? null
+          : Number(postal_code),
+        (house_number || "").trim() || null,
+        userId,
+      ],
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Profile updated successfully", user: result.rows[0] });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    res.status(500).json({ message: "Error updating user profile" });
   }
 });
 
@@ -287,9 +370,7 @@ app.post("/api/inventory", async (req, res) => {
   }
 
   try {
-    // Limit image_url to 1MB to prevent database issues
-    const finalImageUrl =
-      image_url && image_url.length < 1048576 ? image_url : null;
+    const finalImageUrl = image_url || null;
 
     // Get the highest sort_order and add 1
     const maxSortOrderResult = await pool.query(

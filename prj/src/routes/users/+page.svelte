@@ -110,7 +110,7 @@
 	}
 
 	function getAvatarUrl(user) {
-		return user.avatarUrl || user.avatarurl || "white.png";
+		return user.pfp || "white.png";
 	}
 
 	function resolveRoleFlags(roleValue) {
