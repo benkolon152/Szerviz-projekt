@@ -171,6 +171,24 @@ app.delete("/api/users/:id", async (req, res) => {
   }
 });
 
+app.get("/api/shop/featured", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+        SELECT category, name, price_huf, image_url, featured_shop_order, specifications
+        FROM pc_components
+        WHERE featured_shop = true
+        ORDER BY featured_shop_order ASC NULLS LAST, sort_order ASC
+      `,
+    );
+
+    res.status(200).json({ components: result.rows });
+  } catch (error) {
+    console.error("Error fetching featured components:", error);
+    res.status(500).json({ message: "Error fetching featured components" });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Ismeretlen szerverhiba" });

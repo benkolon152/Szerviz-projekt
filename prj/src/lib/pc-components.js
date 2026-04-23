@@ -1090,12 +1090,44 @@ function inferSpecifications(category, name) {
   return common;
 }
 
+function inferImageUrl(category, name) {
+  const categoryLabel = pcComponentCategoryLabels[category] ?? "PC component";
+  const seed = hashText(`${category}:${name}`);
+  const hue = seed % 360;
+  const accent = (hue + 42) % 360;
+  const background = `hsl(${hue} 35% 22%)`;
+  const foreground = "#ffffff";
+  const stroke = `hsl(${accent} 70% 60%)`;
+  const primaryLine = name.length > 28 ? name.slice(0, 28) + "…" : name;
+  const secondaryLine = categoryLabel.length > 24 ? categoryLabel.slice(0, 24) + "…" : categoryLabel;
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="${primaryLine}">
+      <defs>
+        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="${background}"/>
+          <stop offset="100%" stop-color="hsl(${(hue + 24) % 360} 35% 16%)"/>
+        </linearGradient>
+      </defs>
+      <rect width="800" height="600" rx="36" fill="url(#g)"/>
+      <rect x="54" y="54" width="692" height="492" rx="28" fill="none" stroke="${stroke}" stroke-width="4" stroke-dasharray="10 10" opacity="0.6"/>
+      <circle cx="640" cy="120" r="56" fill="${stroke}" opacity="0.18"/>
+      <circle cx="130" cy="470" r="84" fill="${stroke}" opacity="0.12"/>
+      <text x="80" y="290" fill="${foreground}" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700">${secondaryLine}</text>
+      <text x="80" y="350" fill="${foreground}" font-family="Arial, Helvetica, sans-serif" font-size="30" opacity="0.9">${primaryLine}</text>
+      <text x="80" y="404" fill="${foreground}" font-family="Arial, Helvetica, sans-serif" font-size="22" opacity="0.7">PC component</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 export const pcComponentCatalogDetailed = Object.fromEntries(
   Object.entries(pcComponentCatalog).map(([category, names]) => [
     category,
     names.map((name) => ({
       name,
       priceHuf: inferPriceHuf(category, name),
+      imageUrl: inferImageUrl(category, name),
       specifications: inferSpecifications(category, name),
     })),
   ]),
