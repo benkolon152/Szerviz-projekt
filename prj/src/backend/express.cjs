@@ -53,29 +53,33 @@ app.post("/api/register", async (req, res) => {
 });
 
 app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body;
 
   try {
-    const normalizedEmail = (email || "").trim().toLowerCase();
+    const normalizedIdentifier = (identifier || "").trim().toLowerCase();
 
-    if (!normalizedEmail || !password) {
+    if (!normalizedIdentifier || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     const result = await pool.query(
-      "SELECT * FROM users WHERE LOWER(useremail) = LOWER($1) LIMIT 1",
-      [normalizedEmail],
+      "SELECT * FROM users WHERE LOWER(useremail) = LOWER($1) OR LOWER(username) = LOWER($1) LIMIT 1",
+      [normalizedIdentifier],
     );
 
     if (result.rowCount === 0) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res
+        .status(401)
+        .json({ message: "Invalid username/email or password" });
     }
 
     const user = result.rows[0];
     const match = await bcrypt.compare(password, user.pw);
 
     if (!match) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res
+        .status(401)
+        .json({ message: "Invalid username/email or password" });
     }
 
     res.status(200).json({

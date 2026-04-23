@@ -2,7 +2,7 @@
 <script>
   import { goto } from "$app/navigation";
 
-  let email = "";
+  let identifier = "";
   let password = "";
   let message = "";
 
@@ -14,7 +14,7 @@
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier, password }),
       });
       const data = await response.json().catch(() => ({}));
       message = data.message || "Request failed.";
@@ -34,7 +34,7 @@
     <div style="background: rgba(0, 0, 0, 0.5); min-width: 300px; min-height: 300px; align-items: center; justify-content: center; display: flex; flex-direction: column; padding: 20px; border-radius: 10px;">
       <h1>Login</h1>
       <form on:submit={handleSubmit} style="display: flex; flex-direction: column;">
-        <input bind:value={email} type="email" placeholder="Email" style="border: none; padding: 10px; border-radius: 5px;" />
+        <input bind:value={identifier} type="text" placeholder="Email or username" style="border: none; padding: 10px; border-radius: 5px;" />
         <input bind:value={password} type="password" placeholder="Password" style="border: none; padding: 10px; border-radius: 5px; margin: 10px 0;" />
         <button type="submit" style="background-color: rgb(79, 7, 107); color: white; border: none; padding: 10px; border-radius: 5px;">Login</button>
         <p>{message}</p>
