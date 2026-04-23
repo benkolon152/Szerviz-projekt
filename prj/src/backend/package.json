@@ -1,6 +1,9 @@
 {
   "name": "backend",
   "private": true,
+  "scripts": {
+    "seed:pc-components": "node seed-pc-components.cjs"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

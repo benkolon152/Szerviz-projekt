@@ -21,7 +21,7 @@
 
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
-        goto("/");
+        window.location.replace("/");
       }
     } catch (error) {
       console.error("Error:", error);

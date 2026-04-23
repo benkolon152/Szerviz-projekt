@@ -130,12 +130,9 @@
   <h3 class="section-title">EXTRÁK</h3>
   <div class="builder-section">
     <div class="builder-row"><span>Monitor</span> <button class="btn-add">Hozzáadás +</button></div>
-    <div class="builder-row"><span>Billentyűzet és egér</span> <button class="btn-add">Hozzáadás +</button></div>
     <div class="builder-row"><span>Billentyűzet</span> <button class="btn-add">Hozzáadás +</button></div>
     <div class="builder-row"><span>Egér</span> <button class="btn-add">Hozzáadás +</button></div>
     <div class="builder-row"><span>Operációs rendszer</span> <button class="btn-add">Hozzáadás +</button></div>
-    <div class="builder-row"><span>Irodai alkalmazás</span> <button class="btn-add">Hozzáadás +</button></div>
-    <div class="builder-row"><span>Biztonsági szoftver</span> <button class="btn-add">Hozzáadás +</button></div>
   </div>
 
   <h3 class="section-title">SZOLGÁLTATÁSOK</h3>
@@ -175,7 +172,7 @@
         <span>Összesen</span>
         <strong>{formatPrice(total)}</strong>
       </div>
-      <button class="btn-buy">Megveszem</button>
+      <button class="btn-buy">Kosárba</button>
     </div>
   </div>
 
