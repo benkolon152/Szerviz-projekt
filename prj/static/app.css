@@ -376,9 +376,68 @@ body {
   text-decoration: none;
 }
 
+.profile-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-trigger {
+  background: none;
+  border: none;
+  color: white;
+  font-family: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #25003e; /* Matches your theme */
+  min-width: 160px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.4);
+  z-index: 1000;
+  border-radius: 8px;
+  margin-top: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu a {
+  color: white;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 0.9rem !important;
+  transition: background 0.2s;
+}
+
+.dropdown-menu a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu hr {
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0;
+}
+
+.logout {
+  color: #ff4d4d !important; /* Slight red tint for logout */
+}
+
 /* ----------------------------MEDIA QUERIES---------------------------- */
-/* Since flexbox handles most of the fluidity, we only need a breakpoint for specific UI changes like the mobile menu. */
 @media (max-width: 768px) {
+  .dropdown-menu {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    background: rgba(0,0,0,0.2);
+    margin-top: 5px;
+  }
+
   .hamburger {
     display: block;
     z-index: 100;
