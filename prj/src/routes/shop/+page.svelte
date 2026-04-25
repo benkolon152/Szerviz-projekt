@@ -3,6 +3,7 @@
     import { goto } from "$app/navigation";
             import { pcComponentCategoryLabels } from "$lib/pc-components";
                     import CartDrawer from "$lib/components/CartDrawer.svelte";
+            import { cart, cartOpen } from "$lib/cart";
 
             const API_BASE = "http://localhost:3001";
             const CATEGORY_LABEL_OVERRIDES = {
@@ -208,6 +209,21 @@
 
     function decreaseQuantity() {
         quantity = Math.max(1, quantity - 1);
+    }
+
+    function handleAddToCart() {
+        if (!selectedItem) {
+            return;
+        }
+
+        cart.addItem(selectedItem, quantity);
+        cartOpen.open();
+    }
+
+    function handleQuickAddToCart(item, event) {
+        event?.stopPropagation();
+        cart.addItem(item, 1);
+        cartOpen.open();
     }
 
     async function loadCategoryItems(category) {
@@ -527,7 +543,7 @@
                         </div>
                     </div>
 
-                    <button class="add-to-cart-button" type="button">Hozzáadom a kosárhoz</button>
+                    <button class="add-to-cart-button" type="button" on:click={handleAddToCart}>Hozzáadom a kosárhoz</button>
                 </div>
             </div>
         </section>
@@ -635,15 +651,24 @@
                     {:else}
                         <div class="product-grid">
                             {#each sortedItems as item}
-                                <button class="product-card" type="button" on:click={() => openItemDetails(item)}>
-                                    <div class="product-image-wrap">
-                                        <img class="product-image" src={item.image_url} alt={getItemName(item)} loading="lazy" />
+                                <article class="product-card">
+                                    <button class="product-details-button" type="button" on:click={() => openItemDetails(item)}>
+                                        <div class="product-image-wrap">
+                                            <img class="product-image" src={item.image_url} alt={getItemName(item)} loading="lazy" />
+                                        </div>
+                                        <div class="product-content">
+                                            <p class="product-name">{getItemName(item)}</p>
+                                            <p class="product-price">{formatPrice(item.price_huf)}</p>
+                                        </div>
+                                    </button>
+                                    <div class="product-card-actions">
+                                        <button class="quick-add-button" type="button" aria-label="Kosárba tesz" on:click={(event) => handleQuickAddToCart(item, event)}>
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                                <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2Zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2ZM7.17 14h9.92c.75 0 1.41-.41 1.75-1.03L22 6.5l-1.74-1-3.09 5.5H8.1L4.27 3H1v2h2l3.6 7.59-1.35 2.44C4.52 16.37 5.48 18 7 18h12v-2H7l1.17-2Z" />
+                                            </svg>
+                                        </button>
                                     </div>
-                                    <div class="product-content">
-                                        <p class="product-name">{getItemName(item)}</p>
-                                        <p class="product-price">{formatPrice(item.price_huf)}</p>
-                                    </div>
-                                </button>
+                                </article>
                             {/each}
                         </div>
                     {/if}
@@ -912,9 +937,20 @@
         border-radius: 8px;
         background: white;
         overflow: hidden;
-        cursor: pointer;
         text-align: left;
+    }
+
+    .product-details-button {
+        width: 100%;
+        border: none;
+        background: transparent;
         padding: 0;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .product-card-actions {
+        padding: 0 14px 14px;
     }
 
     .product-detail-page {
@@ -1100,6 +1136,8 @@
 
     .product-content {
         padding: 12px 14px 14px;
+        display: grid;
+        gap: 10px;
     }
 
     .product-name {
@@ -1114,6 +1152,31 @@
         margin: 0;
         font-size: 1.2rem;
         font-weight: 600;
+    }
+
+    .quick-add-button {
+        border: none;
+        border-radius: 8px;
+        background: #08a93f;
+        color: white;
+        font-weight: 800;
+        width: 52px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .quick-add-button svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+    }
+
+    .quick-add-button:hover {
+        background: #079137;
     }
 
     @media (max-width: 1100px) {

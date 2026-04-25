@@ -1,12 +1,35 @@
 <script>
+  import { cart, cartOpen } from "$lib/cart";
+  import { goto } from "$app/navigation";
+
   let isCartOpen = false;
+  let cartItems = [];
+  let cartTotal = 0;
+
+  $: isCartOpen = $cartOpen;
+  $: cartItems = $cart;
+  $: cartTotal = cartItems.reduce((sum, item) => sum + Number(item.price_huf || 0) * Number(item.quantity || 0), 0);
 
   function openCart() {
-    isCartOpen = true;
+    cartOpen.open();
   }
 
   function closeCart() {
-    isCartOpen = false;
+    cartOpen.close();
+  }
+
+  function removeItem(itemId) {
+    cart.removeItem(itemId);
+  }
+
+  function changeQuantity(itemId, event) {
+    const nextQuantity = Number(event.currentTarget.value);
+    cart.updateQuantity(itemId, nextQuantity);
+  }
+
+  function goToCheckout() {
+    closeCart();
+    goto("/checkout");
   }
 
   function handleKeydown(event) {
@@ -30,6 +53,9 @@
       <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2Zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2ZM7.17 14h9.92c.75 0 1.41-.41 1.75-1.03L22 6.5l-1.74-1-3.09 5.5H8.1L4.27 3H1v2h2l3.6 7.59-1.35 2.44C4.52 16.37 5.48 18 7 18h12v-2H7l1.17-2Z" />
     </svg>
     <span>Kosar</span>
+    {#if cartItems.length > 0}
+      <strong class="cart-badge">{cartItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0)}</strong>
+    {/if}
   </button>
 </li>
 
@@ -46,11 +72,40 @@
     <button type="button" class="cart-close" on:click={closeCart} aria-label="Kosar bezarasa">x</button>
   </div>
 
-  <div class="cart-body">
-    <h3>URES A KOSARAD!</h3>
-    <p>Nem muszaj hogy igy legyen. Nezz korul a Shopban tobb ezer jo ajanlatert!</p>
-    <a href="/shop" class="shop-link" on:click={closeCart}>Tovabb a shopba</a>
-  </div>
+  {#if cartItems.length === 0}
+    <div class="cart-body empty-state">
+      <h3>URES A KOSARAD!</h3>
+      <p>Nem muszaj hogy igy legyen. Nezz korul a Shopban tobb ezer jo ajanlatert!</p>
+      <a href="/shop" class="shop-link" on:click={closeCart}>Tovabb a shopba</a>
+    </div>
+  {:else}
+    <div class="cart-body cart-list">
+      {#each cartItems as item}
+        <article class="cart-item">
+          <img class="cart-item-image" src={item.image_url} alt={item.name} />
+          <div class="cart-item-content">
+            <h3>{item.name}</h3>
+            <p>{new Intl.NumberFormat("hu-HU", { style: "currency", currency: "HUF", maximumFractionDigits: 0 }).format(Number(item.price_huf || 0)).replace("HUF", "Ft")}</p>
+            <div class="cart-item-controls">
+              <label>
+                Db
+                <input type="number" min="1" max="99" value={item.quantity} on:change={(event) => changeQuantity(item.id, event)} />
+              </label>
+              <button type="button" class="remove-button" on:click={() => removeItem(item.id)}>Eltávolítás</button>
+            </div>
+          </div>
+        </article>
+      {/each}
+
+      <div class="cart-summary">
+        <div>
+          <span>Összesen</span>
+          <strong>{new Intl.NumberFormat("hu-HU", { style: "currency", currency: "HUF", maximumFractionDigits: 0 }).format(cartTotal).replace("HUF", "Ft")}</strong>
+        </div>
+        <button type="button" class="checkout-button" on:click={goToCheckout}>Tovább a fizetéshez</button>
+      </div>
+    </div>
+  {/if}
 </aside>
 
 <style>
@@ -69,6 +124,21 @@
     padding: 7px 12px;
     font: inherit;
     cursor: pointer;
+    position: relative;
+  }
+
+  .cart-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #ff4d4d;
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 800;
   }
 
   .cart-trigger svg {
@@ -137,6 +207,107 @@
 
   .cart-body {
     padding: 28px;
+  }
+
+  .cart-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    height: calc(100vh - 73px);
+  }
+
+  .cart-item {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 12px;
+    background: white;
+    border: 1px solid #e3e6f3;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .cart-item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    background: #f4f6fb;
+    border-radius: 10px;
+  }
+
+  .cart-item-content h3 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+    color: #161f53;
+  }
+
+  .cart-item-content p {
+    margin: 0 0 10px;
+    color: #111;
+    font-weight: 700;
+  }
+
+  .cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .cart-item-controls label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #4f5883;
+  }
+
+  .cart-item-controls input {
+    width: 62px;
+    border: 1px solid #d0d6ea;
+    border-radius: 8px;
+    padding: 6px 8px;
+  }
+
+  .remove-button {
+    border: none;
+    background: transparent;
+    color: #e44c4c;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .cart-summary {
+    margin-top: auto;
+    display: grid;
+    gap: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #dfe3ef;
+  }
+
+  .cart-summary div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .cart-summary span {
+    color: #5a6187;
+  }
+
+  .cart-summary strong {
+    color: #111;
+    font-size: 1.15rem;
+  }
+
+  .checkout-button {
+    border: none;
+    border-radius: 8px;
+    background: #08a93f;
+    color: white;
+    font-weight: 800;
+    padding: 12px 16px;
+    cursor: pointer;
   }
 
   .cart-body h3 {
