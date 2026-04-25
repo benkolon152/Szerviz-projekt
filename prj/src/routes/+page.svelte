@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
+  import CartDrawer from "$lib/components/CartDrawer.svelte";
 
   let isOpen = false;
   let isProfileOpen = false;
@@ -70,6 +71,7 @@
       {#if canViewInventory}
         <li><a href="/inventory">Inventory</a></li>
       {/if}
+      <CartDrawer />
       <li class="profile-dropdown">
         <button class="dropdown-trigger" on:click={toggleProfile}>
           {#if userPfp}
@@ -94,7 +96,7 @@
 </nav>
 
 <div class="home">
-  <img class="banner" src="white.png" alt="kep" />
+  <img class="banner" src="banner.png" alt="kep" />
   
   <h1 class="cimek">Kiemelt</h1>
   <div class="highlight">

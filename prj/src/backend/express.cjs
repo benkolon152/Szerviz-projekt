@@ -371,7 +371,7 @@ app.get("/api/shop/featured", async (req, res) => {
   try {
     const result = await pool.query(
       `
-        SELECT category, name, price_huf, image_url, featured_shop_order, specifications
+        SELECT id, category, name, brand, model, price_huf, image_url, featured_shop_order, specifications
         FROM pc_components
         WHERE featured_shop = true
         ORDER BY featured_shop_order ASC NULLS LAST, sort_order ASC
@@ -382,6 +382,65 @@ app.get("/api/shop/featured", async (req, res) => {
   } catch (error) {
     console.error("Error fetching featured components:", error);
     res.status(500).json({ message: "Error fetching featured components" });
+  }
+});
+
+app.get("/api/shop/components/:id", async (req, res) => {
+  const componentId = Number(req.params.id);
+
+  if (!Number.isInteger(componentId) || componentId <= 0) {
+    return res.status(400).json({ message: "Invalid component id" });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+        SELECT *
+        FROM pc_components
+        WHERE id = $1
+        LIMIT 1
+      `,
+      [componentId],
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Component not found" });
+    }
+
+    res.status(200).json({ component: result.rows[0] });
+  } catch (error) {
+    console.error("Error fetching shop component details:", error);
+    res.status(500).json({ message: "Error fetching shop component details" });
+  }
+});
+
+app.get("/api/shop/components", async (req, res) => {
+  const category = String(req.query.category || "").trim();
+
+  try {
+    const values = [];
+    const whereParts = [];
+
+    if (category) {
+      values.push(category);
+      whereParts.push(`category = $${values.length}`);
+    }
+
+    const whereClause = whereParts.length ? `WHERE ${whereParts.join(" AND ")}` : "";
+    const result = await pool.query(
+      `
+        SELECT id, category, name, brand, model, price_huf, image_url, sort_order, specifications
+        FROM pc_components
+        ${whereClause}
+        ORDER BY sort_order ASC NULLS LAST, id ASC
+      `,
+      values,
+    );
+
+    res.status(200).json({ components: result.rows });
+  } catch (error) {
+    console.error("Error fetching shop components:", error);
+    res.status(500).json({ message: "Error fetching shop components" });
   }
 });
 
