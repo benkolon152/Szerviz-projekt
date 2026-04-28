@@ -13,6 +13,7 @@
   let userPfp = "";
   let isAdmin = false;
   let canViewInventory = false;
+  let userId = null;
 
   let checkoutMessage = "";
   let checkoutMessageIsError = false;
@@ -20,8 +21,13 @@
 
   let customerName = "";
   let customerEmail = "";
-  let shippingAddress = "";
+  let postalCode = "";
+  let city = "";
+  let streetAddress = "";
   let phoneNumber = "";
+  let savedUser = null;
+  let savedAddressAvailable = false;
+  let lastSavedAddress = "";
 
   $: cartItems = $cart;
   $: cartTotal = cartItems.reduce((sum, item) => sum + Number(item.price_huf || 0) * Number(item.quantity || 0), 0);
@@ -35,12 +41,21 @@
         const parsedUser = JSON.parse(rawUser);
         displayName = parsedUser?.username || "Profile";
         userPfp = parsedUser?.pfp || "";
+        userId = parsedUser?.id ?? null;
         isAdmin = Boolean(parsedUser?.isadmin);
         canViewInventory = isAdmin || Boolean(parsedUser?.isemployee);
         customerEmail = parsedUser?.email || "";
+        customerName = parsedUser?.username || "";
+        // Autofill contact basics; keep address fields empty until user opts in
+        phoneNumber = parsedUser?.phone || parsedUser?.phone_number || parsedUser?.tel || phoneNumber;
+        // Keep the parsed user around so the UI can opt-in to use the saved address
+        savedUser = parsedUser;
+        savedAddressAvailable = Boolean(parsedUser?.shipping_address || parsedUser?.address || parsedUser?.postal_code || parsedUser?.address_line1 || parsedUser?.street);
+        lastSavedAddress = parsedUser?.shipping_address || parsedUser?.address || "";
       } catch {
         displayName = "Profile";
         userPfp = "";
+        userId = null;
         isAdmin = false;
         canViewInventory = false;
       }
@@ -77,13 +92,91 @@
     }).format(price ?? 0).replace("HUF", "Ft");
   }
 
-  function clearCartAndContinue() {
-    cart.clear();
-    checkoutMessage = "Rendelés elküldve. Ez most egy helyi demo checkout volt.";
-    checkoutMessageIsError = false;
+  async function applySavedAddress() {
+    // Try user object first
+    if (savedUser) {
+      const savedAddress = savedUser?.shipping_address || savedUser?.address || savedUser?.address_line1 || savedUser?.street || savedUser?.address_line_1 || "";
+      if (savedAddress) {
+        const parts = String(savedAddress).split(',').map(p => p.trim()).filter(Boolean);
+        if (parts.length >= 3) {
+          postalCode = parts[0];
+          city = parts[1];
+          streetAddress = parts.slice(2).join(', ');
+        } else if (parts.length === 2) {
+          postalCode = parts[0];
+          city = parts[1];
+        } else {
+          streetAddress = parts[0] || "";
+        }
+
+        postalCode = postalCode || savedUser?.postal_code || savedUser?.zip || "";
+        city = city || savedUser?.city || savedUser?.town || "";
+        streetAddress = streetAddress || savedUser?.street_address || savedUser?.address_line2 || savedUser?.address2 || streetAddress;
+        phoneNumber = phoneNumber || savedUser?.phone || savedUser?.phone_number || savedUser?.tel || phoneNumber;
+        savedAddressAvailable = true;
+        lastSavedAddress = savedAddress;
+        return;
+      }
+    }
+
+    // If userId exists, try to fetch the user's profile first (profile stores structured fields)
+    if (userId) {
+      try {
+        const prof = await fetch(`${API_BASE}/api/users/${userId}/profile`);
+        if (prof.ok) {
+          const json = await prof.json().catch(() => ({}));
+          const u = json.user || {};
+          // profile returns city, postal_code, house_number
+          if (u.postal_code || u.city || u.house_number) {
+            postalCode = postalCode || (u.postal_code ? String(u.postal_code) : "");
+            city = city || (u.city || "");
+            streetAddress = streetAddress || (u.house_number ? String(u.house_number) : "");
+            phoneNumber = phoneNumber || (u.phone_number ? String(u.phone_number) : "") || savedUser?.phone || savedUser?.phone_number || savedUser?.tel || phoneNumber;
+            savedAddressAvailable = true;
+            lastSavedAddress = `${postalCode}, ${city}, ${streetAddress}`;
+            return;
+          }
+        }
+      } catch (e) {
+        // ignore and fallback to orders
+      }
+
+      // Fall back to fetching the user's previous orders for a saved shipping_address
+      try {
+        const res = await fetch(`${API_BASE}/api/users/${userId}/orders`);
+        if (!res.ok) {
+          savedAddressAvailable = false;
+          return;
+        }
+        const json = await res.json().catch(() => ({}));
+        const orders = json.orders || [];
+        const found = (orders || []).find(o => o.shipping_address && String(o.shipping_address).trim());
+        if (found) {
+          const savedAddress = String(found.shipping_address || "");
+          const parts = savedAddress.split(',').map(p => p.trim()).filter(Boolean);
+          if (parts.length >= 3) {
+            postalCode = parts[0];
+            city = parts[1];
+            streetAddress = parts.slice(2).join(', ');
+          } else if (parts.length === 2) {
+            postalCode = parts[0];
+            city = parts[1];
+          } else {
+            streetAddress = parts[0] || "";
+          }
+          phoneNumber = phoneNumber || (found.phone_number || "");
+          savedAddressAvailable = true;
+          lastSavedAddress = savedAddress;
+          return;
+        }
+        savedAddressAvailable = false;
+      } catch (e) {
+        savedAddressAvailable = false;
+      }
+    }
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (cartItems.length === 0) {
@@ -92,8 +185,14 @@
       return;
     }
 
-    if (!customerName.trim() || !customerEmail.trim() || !shippingAddress.trim()) {
-      checkoutMessage = "Kérlek töltsd ki a nevet, e-mailt és a szállítási címet.";
+    if (!isLoggedIn || !userId) {
+      checkoutMessage = "A rendelés mentéséhez jelentkezz be, hogy az Orders menüpont alatt is lásd.";
+      checkoutMessageIsError = true;
+      return;
+    }
+
+    if (!customerName.trim() || !customerEmail.trim() || !postalCode.trim() || !city.trim() || !streetAddress.trim()) {
+      checkoutMessage = "Kérlek töltsd ki a nevet, e-mailt és a teljes szállítási címet (irányítószám, város, utca).";
       checkoutMessageIsError = true;
       return;
     }
@@ -102,7 +201,29 @@
     checkoutMessage = "";
 
     try {
-      clearCartAndContinue();
+      const response = await fetch(`${API_BASE}/api/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          customer_name: customerName.trim(),
+          customer_email: customerEmail.trim().toLowerCase(),
+          shipping_address: `${postalCode.trim()}, ${city.trim()}, ${streetAddress.trim()}`,
+          phone_number: phoneNumber.trim(),
+          items: cartItems,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        checkoutMessage = data.message || "Nem sikerült elmenteni a rendelést.";
+        checkoutMessageIsError = true;
+        return;
+      }
+
+      cart.clear();
+      goto("/orders");
     } finally {
       submitting = false;
     }
@@ -183,10 +304,35 @@
           <input type="tel" bind:value={phoneNumber} placeholder="+36 ..." />
         </label>
 
-        <label>
-          Szállítási cím
-          <textarea bind:value={shippingAddress} rows="4" placeholder="Irányítószám, város, utca, házszám"></textarea>
-        </label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="flex:1;display:grid;gap:8px;">
+            <label>
+              Irányítószám
+              <input type="text" bind:value={postalCode} placeholder="Irányítószám" />
+            </label>
+
+            <label>
+              Város
+              <input type="text" bind:value={city} placeholder="Város" />
+            </label>
+
+            <label>
+              Utca, házszám
+              <input type="text" bind:value={streetAddress} placeholder="Utca, házszám" />
+            </label>
+          </div>
+
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;">
+            <button type="button" class="use-saved" on:click={applySavedAddress} disabled={!userId}>
+              Use saved address
+            </button>
+            {#if savedAddressAvailable}
+              <small style="color:#5a6187;">Saved address available</small>
+            {:else if userId}
+              <small style="color:#5a6187;">No saved address found yet — will check orders</small>
+            {/if}
+          </div>
+        </div>
 
         <button class="place-order-button" type="submit" disabled={submitting}>
           {submitting ? "Rendelés leadása..." : "Rendelés leadása"}
@@ -300,8 +446,7 @@
     font-weight: 600;
   }
 
-  .checkout-form input,
-  .checkout-form textarea {
+  .checkout-form input {
     border-radius: 10px;
     border: 1px solid #cfd3e8;
     padding: 10px 12px;
@@ -379,6 +524,19 @@
 
   .checkout-message.error {
     color: #d64545;
+  }
+
+  .use-saved {
+    background: transparent;
+    border: 0;
+    color: #2260e8;
+    cursor: pointer;
+    padding: 6px 8px;
+    font-weight: 700;
+  }
+  .use-saved[disabled] {
+    opacity: 0.45;
+    cursor: default;
   }
 
   @media (max-width: 1100px) {

@@ -68,8 +68,45 @@
     let quantity = 1;
     let isLoadingItemDetails = false;
     let itemDetailsError = "";
+    let isPrebuiltView = false;
+
+    const PREBUILT_PCS = [
+        {
+            id: "prebuilt-starter",
+            name: "Starter Game Box",
+            category: "prebuilt",
+            brand: "MyApp",
+            model: "Starter",
+            price_huf: 329900,
+            image_url: "white.png",
+            description: "Belépő szintű előre összeszerelt gép játékra és tanulásra.",
+        },
+        {
+            id: "prebuilt-balanced",
+            name: "Balanced Creator PC",
+            category: "prebuilt",
+            brand: "MyApp",
+            model: "Balanced",
+            price_huf: 569900,
+            image_url: "white.png",
+            description: "Kiegyensúlyozott konfiguráció játékhoz, munkához és tartalomgyártáshoz.",
+        },
+        {
+            id: "prebuilt-pro",
+            name: "Pro Performance Tower",
+            category: "prebuilt",
+            brand: "MyApp",
+            model: "Pro",
+            price_huf: 899900,
+            image_url: "white.png",
+            description: "Erős előre összeállított PC komolyabb teljesítményigényekhez.",
+        },
+    ];
 
     onMount(async () => {
+        const params = new URLSearchParams(window.location.search);
+        isPrebuiltView = params.get("view") === "prebuilt";
+
         const rawUser = localStorage.getItem("user");
         isLoggedIn = Boolean(rawUser);
 
@@ -86,6 +123,13 @@
                 isAdmin = false;
                 canViewInventory = false;
             }
+        }
+
+        if (isPrebuiltView) {
+            isLoadingFeatured = false;
+            isLoadingCategories = false;
+            featuredItems = PREBUILT_PCS;
+            return;
         }
 
         await Promise.all([loadFeaturedItems(), loadCategoryTiles()]);
@@ -222,6 +266,11 @@
 
     function handleQuickAddToCart(item, event) {
         event?.stopPropagation();
+        cart.addItem(item, 1);
+        cartOpen.open();
+    }
+
+    function handlePrebuiltAddToCart(item) {
         cart.addItem(item, 1);
         cartOpen.open();
     }
@@ -547,6 +596,28 @@
                 </div>
             </div>
         </section>
+    {:else if isPrebuiltView}
+        <section class="featured-section">
+            <div class="prebuilt-header">
+                <h2 class="section-title">Előre összeszerelt PC-k</h2>
+                <a href="/shop" class="back-to-shop">Összes termék megtekintése</a>
+            </div>
+            <p class="section-status">Ezek a gépek még nincsenek az adatbázisban, ezért külön, statikus ajánlatként jelennek meg.</p>
+
+            <div class="featured-grid prebuilt-grid">
+                {#each PREBUILT_PCS as item}
+                    <article class="cards featured-card prebuilt-card">
+                        <img class="image featured-image" src={item.image_url} alt={item.name} loading="lazy">
+                        <div class="cards-content">
+                            <p class="featured-name">{item.name}</p>
+                            <p class="featured-price">{formatPrice(item.price_huf)}</p>
+                            <p class="prebuilt-description">{item.description}</p>
+                            <button type="button" class="add-prebuilt-button" on:click={() => handlePrebuiltAddToCart(item)}>Kosárba</button>
+                        </div>
+                    </article>
+                {/each}
+            </div>
+        </section>
     {:else if !selectedCategory}
         <section class="categories-section">
             <h2 class="section-title">Számítógép alkatrész</h2>
@@ -754,12 +825,54 @@
     .featured-section {
         margin-top: 10px;
     }
-
     .featured-grid {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 18px;
         align-items: stretch;
+    }
+
+    .prebuilt-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .back-to-shop {
+        color: white;
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+    .prebuilt-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .prebuilt-card {
+        text-align: left;
+    }
+
+    .prebuilt-description {
+        margin: 0 0 12px;
+        color: #5d668d;
+    }
+
+    .add-prebuilt-button {
+        border: none;
+        border-radius: 999px;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #1b5cff, #4d79ff);
+        color: white;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    :global(.featured-link-card) {
+        display: block;
+        text-decoration: none;
+        color: inherit;
     }
 
     .featured-card {
@@ -1236,6 +1349,15 @@
         }
 
         .featured-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .prebuilt-header {
+            align-items: start;
+            flex-direction: column;
+        }
+
+        .prebuilt-grid {
             grid-template-columns: 1fr;
         }
 

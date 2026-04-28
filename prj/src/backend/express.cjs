@@ -17,6 +17,8 @@ const INVENTORY_EXCLUDED_COLUMNS = new Set([
   "specifications",
 ]);
 
+let ordersSchemaPromise = null;
+
 function quoteIdentifier(identifier) {
   return `"${String(identifier).replace(/"/g, '""')}"`;
 }
@@ -27,8 +29,76 @@ async function ensureUserProfileColumns() {
     ADD COLUMN IF NOT EXISTS pfp TEXT,
     ADD COLUMN IF NOT EXISTS city TEXT,
     ADD COLUMN IF NOT EXISTS postal_code INTEGER,
-    ADD COLUMN IF NOT EXISTS house_number TEXT
+    ADD COLUMN IF NOT EXISTS house_number TEXT,
+    ADD COLUMN IF NOT EXISTS phone_number TEXT
   `);
+}
+
+async function ensureOrdersTable() {
+  if (!ordersSchemaPromise) {
+    ordersSchemaPromise = (async () => {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS orders (
+          id BIGSERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          order_type TEXT NOT NULL DEFAULT 'purchase',
+          customer_name TEXT NOT NULL,
+          customer_email TEXT NOT NULL,
+          shipping_address TEXT NOT NULL,
+          phone_number TEXT,
+          repair_device TEXT,
+          repair_issue TEXT,
+          items JSONB NOT NULL DEFAULT '[]'::jsonb,
+          total_huf INTEGER NOT NULL DEFAULT 0,
+          status TEXT NOT NULL DEFAULT 'processing',
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS orders_user_id_created_at_idx
+        ON orders (user_id, created_at DESC)
+      `);
+
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS orders_created_at_idx
+        ON orders (created_at DESC)
+      `);
+
+      await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type TEXT NOT NULL DEFAULT 'purchase'`);
+      await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_device TEXT`);
+      await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_issue TEXT`);
+      await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_address TEXT`);
+      await pool.query(`ALTER TABLE orders ALTER COLUMN shipping_address DROP NOT NULL`);
+    })();
+  }
+
+  return ordersSchemaPromise;
+}
+
+function normalizeOrderItems(items) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((item) => {
+      const quantity = Number(item?.quantity ?? 0);
+      const priceHuf = Number(item?.price_huf ?? 0);
+
+      return {
+        id: item?.id ?? null,
+        name: String(item?.name || item?.model || "Névtelen termék").trim() || "Névtelen termék",
+        quantity: Number.isFinite(quantity) && quantity > 0 ? Math.min(99, Math.floor(quantity)) : 1,
+        price_huf: Number.isFinite(priceHuf) && priceHuf >= 0 ? Math.round(priceHuf) : 0,
+        image_url: String(item?.image_url || "").trim(),
+        category: String(item?.category || "").trim(),
+        brand: String(item?.brand || "").trim(),
+        model: String(item?.model || "").trim(),
+      };
+    })
+    .filter((item) => item.name && item.quantity > 0);
 }
 
 app.use(cors());
@@ -110,6 +180,7 @@ app.post("/api/login", async (req, res) => {
         username: user.username,
         email: user.useremail,
         pfp: user.pfp,
+        phone_number: user.phone_number,
         isadmin: user.isadmin,
         isemployee: user.isemployee,
       },
@@ -219,7 +290,7 @@ app.get("/api/users/:id/profile", async (req, res) => {
     await ensureUserProfileColumns();
 
     const result = await pool.query(
-      "SELECT id, username, useremail, pfp, city, postal_code, house_number FROM users WHERE id = $1 LIMIT 1",
+      "SELECT id, username, useremail, pfp, city, postal_code, house_number, phone_number FROM users WHERE id = $1 LIMIT 1",
       [userId],
     );
 
@@ -236,7 +307,7 @@ app.get("/api/users/:id/profile", async (req, res) => {
 
 app.put("/api/users/:id/profile", async (req, res) => {
   const userId = Number(req.params.id);
-  const { email, pfp, city, postal_code, house_number } = req.body;
+  const { email, pfp, city, postal_code, house_number, phone_number } = req.body;
 
   if (!Number.isInteger(userId) || userId <= 0) {
     return res.status(400).json({ message: "Invalid user id" });
@@ -258,9 +329,10 @@ app.put("/api/users/:id/profile", async (req, res) => {
             pfp = $2,
             city = $3,
             postal_code = $4,
-            house_number = $5
-        WHERE id = $6
-        RETURNING id, username, useremail, pfp, city, postal_code, house_number
+            house_number = $5,
+            phone_number = $6
+        WHERE id = $7
+        RETURNING id, username, useremail, pfp, city, postal_code, house_number, phone_number
       `,
       [
         normalizedEmail,
@@ -268,6 +340,7 @@ app.put("/api/users/:id/profile", async (req, res) => {
         String(city || "").trim(),
         postal_code === null || postal_code === undefined || postal_code === "" ? null : Number(postal_code),
         String(house_number || "").trim(),
+        String(phone_number || "").trim(),
         userId,
       ],
     );
@@ -280,6 +353,131 @@ app.put("/api/users/:id/profile", async (req, res) => {
   } catch (error) {
     console.error("Error updating user profile:", error);
     res.status(500).json({ message: "Error updating user profile" });
+  }
+});
+
+app.get("/api/users/:id/orders", async (req, res) => {
+  const userId = Number(req.params.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ message: "Invalid user id" });
+  }
+
+  try {
+    await ensureOrdersTable();
+
+    const result = await pool.query(
+      `
+        SELECT id, user_id, order_type, customer_name, customer_email, shipping_address, phone_number, repair_device, repair_issue, items, total_huf, status, created_at, updated_at
+        FROM orders
+        WHERE user_id = $1
+        ORDER BY created_at DESC, id DESC
+      `,
+      [userId],
+    );
+
+    res.status(200).json({ orders: result.rows });
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    res.status(500).json({ message: "Error fetching user orders" });
+  }
+});
+
+app.post("/api/orders", async (req, res) => {
+  const {
+    user_id,
+    order_type,
+    customer_name,
+    customer_email,
+    shipping_address,
+    phone_number,
+    repair_device,
+    repair_issue,
+    items,
+    status,
+  } = req.body;
+  const normalizedUserId = user_id === null || user_id === undefined || user_id === "" ? null : Number(user_id);
+  const normalizedOrderType = String(order_type || "purchase").trim().toLowerCase() === "repair_request" ? "repair_request" : "purchase";
+  const normalizedCustomerName = String(customer_name || "").trim();
+  const normalizedCustomerEmail = String(customer_email || "").trim().toLowerCase();
+  const normalizedShippingAddress = String(shipping_address || "").trim();
+  const normalizedPhoneNumber = String(phone_number || "").trim();
+  const normalizedRepairDevice = String(repair_device || "").trim();
+  const normalizedRepairIssue = String(repair_issue || "").trim();
+  const normalizedStatus = String(status || (normalizedOrderType === "repair_request" ? "needs_repair" : "processing")).trim().toLowerCase();
+  const normalizedItems = normalizeOrderItems(items);
+
+  if (normalizedUserId !== null && (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0)) {
+    return res.status(400).json({ message: "Invalid user id" });
+  }
+
+  if (!normalizedCustomerName || !normalizedCustomerEmail) {
+    return res.status(400).json({ message: "Customer name, email and shipping address are required" });
+  }
+
+  if (normalizedOrderType === "repair_request") {
+    if (!normalizedRepairDevice || !normalizedRepairIssue) {
+      return res.status(400).json({ message: "Repair device and repair issue are required" });
+    }
+  } else if (!normalizedShippingAddress) {
+    return res.status(400).json({ message: "Shipping address is required" });
+  }
+
+  if (normalizedOrderType === "purchase" && normalizedItems.length === 0) {
+    return res.status(400).json({ message: "Order items are required" });
+  }
+
+  const totalHuf = normalizedOrderType === "purchase"
+    ? normalizedItems.reduce((sum, item) => sum + Number(item.price_huf || 0) * Number(item.quantity || 0), 0)
+    : 0;
+
+  const safeStatus = normalizedOrderType === "repair_request" && normalizedStatus === "processing"
+    ? "needs_repair"
+    : normalizedStatus;
+
+  try {
+    await ensureOrdersTable();
+
+    const createdOrder = await pool.query(
+      `
+        INSERT INTO orders (
+          user_id,
+          order_type,
+          customer_name,
+          customer_email,
+          shipping_address,
+          phone_number,
+          repair_device,
+          repair_issue,
+          items,
+          total_huf,
+          status
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11)
+        RETURNING id, user_id, order_type, customer_name, customer_email, shipping_address, phone_number, repair_device, repair_issue, items, total_huf, status, created_at, updated_at
+      `,
+      [
+        normalizedUserId,
+        normalizedOrderType,
+        normalizedCustomerName,
+        normalizedCustomerEmail,
+        normalizedOrderType === "purchase" ? normalizedShippingAddress : normalizedShippingAddress || null,
+        normalizedPhoneNumber || null,
+        normalizedOrderType === "repair_request" ? normalizedRepairDevice : null,
+        normalizedOrderType === "repair_request" ? normalizedRepairIssue : null,
+        JSON.stringify(normalizedItems),
+        totalHuf,
+        safeStatus,
+      ],
+    );
+
+    res.status(201).json({
+      message: "Order created successfully",
+      order: createdOrder.rows[0],
+    });
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({ message: "Error creating order" });
   }
 });
 

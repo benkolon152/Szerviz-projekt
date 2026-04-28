@@ -15,6 +15,7 @@
   let userId = null;
 
   let pfp = "";
+  let phoneNumber = "";
   let city = "";
   let postalCode = "";
   let houseNumber = "";
@@ -57,6 +58,7 @@
 
       userEmail = data.user.useremail || "";
       pfp = data.user.pfp || "";
+      phoneNumber = data.user.phone_number || "";
       city = data.user.city || "";
       postalCode = data.user.postal_code ?? "";
       houseNumber = data.user.house_number || "";
@@ -145,6 +147,7 @@
         body: JSON.stringify({
           email: normalizedEmail,
           pfp: pfp.trim(),
+          phone_number: phoneNumber.trim(),
           city: city.trim(),
           postal_code: postalCode === "" ? null : Number(postalCode),
           house_number: houseNumber.trim(),
@@ -168,6 +171,10 @@
           const parsedUser = JSON.parse(rawUser);
           parsedUser.email = normalizedEmail;
           parsedUser.pfp = pfp;
+          parsedUser.phone_number = phoneNumber;
+          parsedUser.city = city;
+          parsedUser.postal_code = postalCode === "" ? null : Number(postalCode);
+          parsedUser.house_number = houseNumber;
           localStorage.setItem("user", JSON.stringify(parsedUser));
         } catch {
           // ignore localStorage parse issues
@@ -248,6 +255,9 @@
 
         <label for="pfp">Profilkép URL:</label>
         <input id="pfp" type="text" bind:value={pfp} placeholder="https://..." />
+
+        <label for="phone_number">Telefonszám:</label>
+        <input id="phone_number" type="tel" bind:value={phoneNumber} placeholder="+36 ..." />
 
         <label for="city">Város:</label>
         <input id="city" type="text" bind:value={city} />
