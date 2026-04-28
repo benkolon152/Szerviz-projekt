@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
+  import CartDrawer from "$lib/components/CartDrawer.svelte";
 
   let isOpen = false;
   let isProfileOpen = false;
@@ -50,6 +51,14 @@
     isProfileOpen = false;
     goto("/login");
   }
+
+  function openFeaturedShop() {
+    goto("/shop?view=prebuilt");
+  }
+
+  function openRepairForm() {
+    goto("/form");
+  }
 </script>
 
 <nav class="navbar">
@@ -70,6 +79,7 @@
       {#if canViewInventory}
         <li><a href="/inventory">Inventory</a></li>
       {/if}
+      <CartDrawer />
       <li class="profile-dropdown">
         <button class="dropdown-trigger" on:click={toggleProfile}>
           {#if userPfp}
@@ -94,32 +104,32 @@
 </nav>
 
 <div class="home">
-  <img class="banner" src="white.png" alt="kep" />
+  <img class="banner" src="banner.png" alt="kep" />
   
   <h1 class="cimek">Kiemelt</h1>
   <div class="highlight">
     <div class="cards-container">
-      <div class="cards">
+      <a class="cards featured-link-card" href="/shop?view=prebuilt" on:click|preventDefault={openFeaturedShop}>
         <img class="image" src="white.png" alt="kep">
         <div class="cards-content">
             <h4>Előre összeszerelt PC-k</h4>
             <p>Minőségi, előre összeszerelt számítógépek a kedvező árú modellektől a legerősebb konfigurációkig.</p>
         </div>
-      </div>
-      <div class="cards">
+      </a>
+      <a class="cards featured-link-card" href="/form" on:click|preventDefault={openRepairForm}>
         <img class="image" src="white.png" alt="kep">
         <div class="cards-content">
             <h4>Szerviz és javítás</h4>
             <p>Bármilyen számítógépes probléma megoldható.</p>
         </div>
-      </div>
-      <div class="cards">
+      </a>
+      <a class="cards featured-link-card" href="/shop" on:click|preventDefault={() => goto("/shop")}>
         <img class="image" src="white.png" alt="kep">
         <div class="cards-content">
             <h4>Használt és új alkatrészek</h4>
             <p>Szöveg helye – itt megoszthat bővebb információkat az ajánlatról vagy szolgáltatásról.</p>
         </div>
-      </div>
+      </a>
     </div>
   </div>
   
@@ -252,3 +262,20 @@
     </div>
   </div>
 </footer>
+
+<style>
+.featured-link-card {
+  display: block;
+  overflow: visible;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  transform-origin: center;
+  will-change: transform, box-shadow;
+  border-radius: 8px;
+}
+.featured-link-card:hover,
+.featured-link-card:focus {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 14px 30px rgba(2,6,23,0.12), 0 6px 12px rgba(2,6,23,0.06);
+  z-index: 2;
+}
+</style>
