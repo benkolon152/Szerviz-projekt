@@ -1,6 +1,6 @@
         <script>
     import { onMount } from "svelte";
-    import { goto } from "$app/navigation";
+            import { afterNavigate, goto } from "$app/navigation";
             import { pcComponentCategoryLabels } from "$lib/pc-components";
                     import CartDrawer from "$lib/components/CartDrawer.svelte";
             import { cart, cartOpen } from "$lib/cart";
@@ -103,9 +103,40 @@
         },
     ];
 
-    onMount(async () => {
+    function syncShopView() {
         const params = new URLSearchParams(window.location.search);
-        isPrebuiltView = params.get("view") === "prebuilt";
+        const nextIsPrebuiltView = params.get("view") === "prebuilt";
+
+        isPrebuiltView = nextIsPrebuiltView;
+
+        if (nextIsPrebuiltView) {
+            isLoadingFeatured = false;
+            isLoadingCategories = false;
+            featuredItems = PREBUILT_PCS;
+            categoryTiles = [];
+            selectedCategory = "";
+            categoryItems = [];
+            categoryItemsError = "";
+            selectedItem = null;
+            return;
+        }
+
+        selectedCategory = "";
+        categoryItems = [];
+        categoryItemsError = "";
+        selectedItem = null;
+
+        featuredItems = [];
+        if (categoryTiles.length === 0) {
+            void Promise.all([loadFeaturedItems(), loadCategoryTiles()]);
+        } else {
+            void loadFeaturedItems();
+            void loadCategoryTiles();
+        }
+    }
+
+    onMount(async () => {
+        syncShopView();
 
         const rawUser = localStorage.getItem("user");
         isLoggedIn = Boolean(rawUser);
@@ -125,14 +156,9 @@
             }
         }
 
-        if (isPrebuiltView) {
-            isLoadingFeatured = false;
-            isLoadingCategories = false;
-            featuredItems = PREBUILT_PCS;
-            return;
-        }
-
-        await Promise.all([loadFeaturedItems(), loadCategoryTiles()]);
+        afterNavigate(() => {
+            syncShopView();
+        });
     });
 
     async function loadFeaturedItems() {
@@ -275,9 +301,23 @@
         cartOpen.open();
     }
 
+    function openPrebuiltView() {
+        goto("/shop?view=prebuilt");
+    }
+
+    function goToShop() {
+        window.location.href = "/shop";
+    }
+
     async function loadCategoryItems(category) {
         isLoadingCategoryItems = true;
         categoryItemsError = "";
+
+        if (category === "prebuilt") {
+            categoryItems = PREBUILT_PCS;
+            isLoadingCategoryItems = false;
+            return;
+        }
 
         try {
             const response = await fetch(`${API_BASE}/api/shop/components?category=${encodeURIComponent(category)}`);
@@ -498,6 +538,26 @@
         return getItemName(a).localeCompare(getItemName(b), "hu");
     });
 
+    $: sortedPrebuiltItems = [...PREBUILT_PCS].sort((a, b) => {
+        if (sortBy === "price_asc") {
+            return Number(a.price_huf ?? 0) - Number(b.price_huf ?? 0);
+        }
+
+        if (sortBy === "price_desc") {
+            return Number(b.price_huf ?? 0) - Number(a.price_huf ?? 0);
+        }
+
+        if (sortBy === "name_asc") {
+            return getItemName(a).localeCompare(getItemName(b), "hu");
+        }
+
+        if (sortBy === "name_desc") {
+            return getItemName(b).localeCompare(getItemName(a), "hu");
+        }
+
+        return Number(a.price_huf ?? 0) - Number(b.price_huf ?? 0);
+    });
+
     $: selectedItemSpecifications = selectedItem
         ? getSpecificationEntriesFromItem(selectedItem)
         : [];
@@ -600,12 +660,21 @@
         <section class="featured-section">
             <div class="prebuilt-header">
                 <h2 class="section-title">Előre összeszerelt PC-k</h2>
-                <a href="/shop" class="back-to-shop">Összes termék megtekintése</a>
+                <div class="prebuilt-toolbar">
+                    <select bind:value={sortBy} aria-label="Előre összeszerelt PC-k rendezése">
+                        <option value="recommended">Ajánlott</option>
+                        <option value="price_asc">Ár szerint növekvő</option>
+                        <option value="price_desc">Ár szerint csökkenő</option>
+                        <option value="name_asc">Név szerint A-Z</option>
+                        <option value="name_desc">Név szerint Z-A</option>
+                    </select>
+                    <button type="button" class="back-to-shop" on:click={goToShop}>Összes termék megtekintése</button>
+                </div>
             </div>
             <p class="section-status">Ezek a gépek még nincsenek az adatbázisban, ezért külön, statikus ajánlatként jelennek meg.</p>
 
             <div class="featured-grid prebuilt-grid">
-                {#each PREBUILT_PCS as item}
+                {#each sortedPrebuiltItems as item}
                     <article class="cards featured-card prebuilt-card">
                         <img class="image featured-image" src={item.image_url} alt={item.name} loading="lazy">
                         <div class="cards-content">
@@ -638,6 +707,11 @@
                             <span class="category-label">{tile.label}</span>
                         </button>
                     {/each}
+
+                    <button class="category-tile" type="button" on:click={openPrebuiltView}>
+                        <img class="category-image" src="white.png" alt="Előre összeszerelt PC-k" loading="lazy" />
+                        <span class="category-label">Előre összeszerelt PC-k</span>
+                    </button>
                 </div>
             {/if}
         </section>
@@ -839,10 +913,33 @@
         gap: 12px;
     }
 
+    .prebuilt-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
     .back-to-shop {
+        border: 1px solid rgba(255, 255, 255, 0.38);
+        background: rgba(255, 255, 255, 0.14);
         color: white;
+        border-radius: 999px;
+        padding: 10px 16px;
         text-decoration: none;
         font-weight: 700;
+        cursor: pointer;
+        font: inherit;
+    }
+
+    .prebuilt-toolbar select {
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.38);
+        background: rgba(255, 255, 255, 0.92);
+        color: #182152;
+        padding: 10px 14px;
+        font: inherit;
+        font-weight: 600;
     }
 
     .prebuilt-grid {

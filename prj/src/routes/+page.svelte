@@ -189,7 +189,7 @@
     </div>
 
     <div class="image-container">
-      <img class="image" src="white.png" alt="About image" />
+      <img class="image" src="white.png" alt="" />
     </div>
   </section>
 
