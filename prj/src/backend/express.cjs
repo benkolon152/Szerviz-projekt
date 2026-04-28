@@ -642,6 +642,54 @@ app.get("/api/shop/components", async (req, res) => {
   }
 });
 
+// Prebuilt bundles list
+app.get("/api/shop/prebuilts", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+        SELECT id, name, price_huf, image_url, description, specifications
+        FROM prebuilt_pc_bundles
+        ORDER BY id ASC
+      `,
+    );
+
+    res.status(200).json({ prebuilts: result.rows });
+  } catch (error) {
+    console.error("Error fetching prebuilts:", error);
+    res.status(500).json({ message: "Error fetching prebuilts" });
+  }
+});
+
+// Prebuilt bundle details
+app.get("/api/shop/prebuilts/:id", async (req, res) => {
+  const prebuiltId = Number(req.params.id);
+
+  if (!Number.isInteger(prebuiltId) || prebuiltId <= 0) {
+    return res.status(400).json({ message: "Invalid prebuilt id" });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+        SELECT *
+        FROM prebuilt_pc_bundles
+        WHERE id = $1
+        LIMIT 1
+      `,
+      [prebuiltId],
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Prebuilt not found" });
+    }
+
+    res.status(200).json({ prebuilt: result.rows[0] });
+  } catch (error) {
+    console.error("Error fetching prebuilt details:", error);
+    res.status(500).json({ message: "Error fetching prebuilt details" });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Ismeretlen szerverhiba" });

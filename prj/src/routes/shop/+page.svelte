@@ -69,6 +69,11 @@
     let isLoadingItemDetails = false;
     let itemDetailsError = "";
     let isPrebuiltView = false;
+    let prebuiltItems = [];
+    let isLoadingPrebuilts = false;
+    let prebuiltError = "";
+    let sortedPrebuiltItems = [];
+    let selectedItemSpecifications = [];
 
     const PREBUILT_PCS = [
         {
@@ -112,12 +117,15 @@
         if (nextIsPrebuiltView) {
             isLoadingFeatured = false;
             isLoadingCategories = false;
-            featuredItems = PREBUILT_PCS;
+            featuredItems = prebuiltItems.length ? prebuiltItems : PREBUILT_PCS;
             categoryTiles = [];
             selectedCategory = "";
             categoryItems = [];
             categoryItemsError = "";
             selectedItem = null;
+            if (prebuiltItems.length === 0) {
+                void loadPrebuilts();
+            }
             return;
         }
 
@@ -220,6 +228,32 @@
         }
     }
 
+    async function loadPrebuilts() {
+        isLoadingPrebuilts = true;
+        prebuiltError = "";
+
+        try {
+            const response = await fetch(`${API_BASE}/api/shop/prebuilts`);
+
+            if (!response.ok) {
+                throw new Error("Failed to load prebuilts");
+            }
+
+            const data = await response.json();
+            // ensure each prebuilt row has a category so openItemDetails picks the prebuilts endpoint
+            prebuiltItems = (data.prebuilts ?? []).map((r) => ({ ...r, category: "prebuilt" }));
+            featuredItems = prebuiltItems;
+        } catch (error) {
+            console.error(error);
+            prebuiltError = "Nem sikerült betölteni az előre összeszerelt gépeket.";
+            // fallback to static PREBUILT_PCS
+            prebuiltItems = [];
+            featuredItems = PREBUILT_PCS;
+        } finally {
+            isLoadingPrebuilts = false;
+        }
+    }
+
     async function openCategory(category) {
         selectedCategory = category;
         searchQuery = "";
@@ -242,22 +276,39 @@
         itemDetailsError = "";
 
         const itemId = Number(item?.id);
+        // if this item has a numeric id, attempt to fetch fresh details from API
         if (!Number.isInteger(itemId) || itemId <= 0) {
+            // If the item already contains specifications, just open it as-is
+            if (item?.specifications) {
+                return;
+            }
+
             return;
         }
 
         isLoadingItemDetails = true;
 
         try {
-            const response = await fetch(`${API_BASE}/api/shop/components/${itemId}`);
+            const endpoint = item?.category === "prebuilt"
+                ? `${API_BASE}/api/shop/prebuilts/${itemId}`
+                : `${API_BASE}/api/shop/components/${itemId}`;
+
+            const response = await fetch(endpoint);
 
             if (!response.ok) {
                 throw new Error("Failed to load item details");
             }
 
             const data = await response.json();
-            if (selectedItem && Number(selectedItem.id) === itemId) {
-                selectedItem = data.component ?? selectedItem;
+
+            if (item?.category === "prebuilt") {
+                if (selectedItem && Number(selectedItem.id) === itemId) {
+                    selectedItem = data.prebuilt ? { ...data.prebuilt, category: "prebuilt" } : selectedItem;
+                }
+            } else {
+                if (selectedItem && Number(selectedItem.id) === itemId) {
+                    selectedItem = data.component ?? selectedItem;
+                }
             }
         } catch (error) {
             console.error(error);
@@ -468,6 +519,13 @@
             return [];
         }
 
+        if (item.category === "prebuilt" && item.specifications) {
+            const specEntries = getSpecificationEntries(item.specifications);
+            if (specEntries.length > 0) {
+                return specEntries;
+            }
+        }
+
         const directEntries = Object.entries(item)
             .filter(([key, value]) => !SPEC_EXCLUDED_FIELDS.has(key) && value !== null && value !== undefined && value !== "")
             .map(([key, value]) => ({
@@ -538,25 +596,16 @@
         return getItemName(a).localeCompare(getItemName(b), "hu");
     });
 
-    $: sortedPrebuiltItems = [...PREBUILT_PCS].sort((a, b) => {
-        if (sortBy === "price_asc") {
+    $: {
+        const source = prebuiltItems.length ? prebuiltItems : PREBUILT_PCS;
+        sortedPrebuiltItems = [...source].sort((a, b) => {
+            if (sortBy === "price_asc") return Number(a.price_huf ?? 0) - Number(b.price_huf ?? 0);
+            if (sortBy === "price_desc") return Number(b.price_huf ?? 0) - Number(a.price_huf ?? 0);
+            if (sortBy === "name_asc") return getItemName(a).localeCompare(getItemName(b), "hu");
+            if (sortBy === "name_desc") return getItemName(b).localeCompare(getItemName(a), "hu");
             return Number(a.price_huf ?? 0) - Number(b.price_huf ?? 0);
-        }
-
-        if (sortBy === "price_desc") {
-            return Number(b.price_huf ?? 0) - Number(a.price_huf ?? 0);
-        }
-
-        if (sortBy === "name_asc") {
-            return getItemName(a).localeCompare(getItemName(b), "hu");
-        }
-
-        if (sortBy === "name_desc") {
-            return getItemName(b).localeCompare(getItemName(a), "hu");
-        }
-
-        return Number(a.price_huf ?? 0) - Number(b.price_huf ?? 0);
-    });
+        });
+    }
 
     $: selectedItemSpecifications = selectedItem
         ? getSpecificationEntriesFromItem(selectedItem)
@@ -618,7 +667,14 @@
                     </div>
 
                     <section class="detail-specs-under-image">
-                        <h3>Termékleírás</h3>
+                        <div class="detail-specs-header">
+                            <h3>{selectedItem.category === "prebuilt" ? "Műszaki adatok" : "Termékleírás"}</h3>
+                            <p class="detail-specs-intro">
+                                {selectedItem.category === "prebuilt"
+                                    ? "A legfontosabb alkatrészek és jellemzők, ahogy az adatbázisban szerepelnek."
+                                    : "A termékhez mentett technikai részletek."}
+                            </p>
+                        </div>
                         {#if isLoadingItemDetails}
                             <p class="item-detail-empty">Adatbázis részletek betöltése...</p>
                         {:else if itemDetailsError}
@@ -675,15 +731,21 @@
 
             <div class="featured-grid prebuilt-grid">
                 {#each sortedPrebuiltItems as item}
-                    <article class="cards featured-card prebuilt-card">
+                    <div
+                        class="cards featured-card prebuilt-card"
+                        role="button"
+                        tabindex="0"
+                        on:click={() => openItemDetails(item)}
+                        on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); openItemDetails(item); } }}
+                    >
                         <img class="image featured-image" src={item.image_url} alt={item.name} loading="lazy">
                         <div class="cards-content">
                             <p class="featured-name">{item.name}</p>
                             <p class="featured-price">{formatPrice(item.price_huf)}</p>
                             <p class="prebuilt-description">{item.description}</p>
-                            <button type="button" class="add-prebuilt-button" on:click={() => handlePrebuiltAddToCart(item)}>Kosárba</button>
+                            <button type="button" class="add-prebuilt-button" on:click|stopPropagation={() => handlePrebuiltAddToCart(item)}>Kosárba</button>
                         </div>
-                    </article>
+                    </div>
                 {/each}
             </div>
         </section>
@@ -948,11 +1010,20 @@
 
     .prebuilt-card {
         text-align: left;
+        border: 1px solid rgba(28, 52, 122, 0.08);
+        box-shadow: 0 10px 24px rgba(15, 22, 60, 0.08);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .prebuilt-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(15, 22, 60, 0.12);
     }
 
     .prebuilt-description {
         margin: 0 0 12px;
         color: #5d668d;
+        line-height: 1.5;
     }
 
     .add-prebuilt-button {
@@ -964,6 +1035,13 @@
         font: inherit;
         font-weight: 700;
         cursor: pointer;
+        box-shadow: 0 10px 18px rgba(27, 92, 255, 0.22);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .add-prebuilt-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 22px rgba(27, 92, 255, 0.28);
     }
 
     :global(.featured-link-card) {
@@ -1326,8 +1404,9 @@
     }
 
     .item-detail-empty {
+        color: #5f6688;
         margin: 0;
-        color: #5a6187;
+        padding: 10px 0 0;
     }
 
     .product-image-wrap {
@@ -1361,7 +1440,7 @@
         color: #080808;
         margin: 0;
         font-size: 1.2rem;
-        font-weight: 600;
+        font-weight: 700;
     }
 
     .quick-add-button {
@@ -1369,14 +1448,15 @@
         border-radius: 8px;
         background: #08a93f;
         color: white;
-        font-weight: 800;
-        width: 52px;
         height: 42px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0;
+        gap: 6px;
+        font: inherit;
+        font-weight: 700;
         cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
     }
 
     .quick-add-button svg {
@@ -1387,6 +1467,17 @@
 
     .quick-add-button:hover {
         background: #079137;
+        transform: translateY(-1px);
+    }
+
+    .detail-spec-list li:nth-child(odd) {
+        background: linear-gradient(180deg, #ffffff, #fbfcff);
+    }
+
+    @media (max-width: 900px) {
+        .detail-spec-list {
+            grid-template-columns: 1fr;
+        }
     }
 
     @media (max-width: 1100px) {
