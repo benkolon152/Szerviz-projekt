@@ -775,6 +775,33 @@ body {
 
 .modal-header h2 { margin: 0; font-size: 1.3rem; }
 
+.search-container {
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+.search-input {
+  width: 90%;
+  margin: 10px auto 0 auto;
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: #6a96e8;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.search-input::placeholder {
+  color: #888;
+}
+
 .close-btn {
   background: none;
   border: none;
@@ -796,6 +823,19 @@ body {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   margin-bottom: 10px;
+}
+
+.part-info-container {
+  display: flex;
+  align-items: center;
+}
+
+.part-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-right: 15px;
 }
 
 .part-info { display: flex; flex-direction: column; }

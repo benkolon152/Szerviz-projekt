@@ -690,6 +690,29 @@ app.get("/api/shop/prebuilts/:id", async (req, res) => {
   }
 });
 
+app.get("/api/parts/:category", async (req, res) => {
+  const category = req.params.category;
+  const searchQuery = req.query.search || "";
+
+  try {
+    const result = await pool.query(
+      `
+        SELECT id, name, brand, model, price_huf, image_url, socket
+        FROM ${INVENTORY_TABLE}
+        WHERE category = $1 
+        AND (name ILIKE $2 OR brand ILIKE $2)
+        ORDER BY id ASC
+      `,
+      [category, `%${searchQuery}%`]
+    );
+
+    res.status(200).json({ items: result.rows });
+  } catch (error) {
+    console.error("Error fetching parts:", error);
+    res.status(500).json({ message: "Error fetching parts" });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Ismeretlen szerverhiba" });
