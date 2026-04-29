@@ -266,16 +266,16 @@
     <div class="about-content">
       <h2>Rólunk</h2>
       <div class="about-text">
-        <h4>Subheading</h4>
-        <p>Body text for whatever you'd like to expand on the main point.</p>
+        <h4>Szakértelem és Megbízhatóság</h4>
+        <p>Több mint 15 éve szolgáljuk az informatika szerelmeseit a legmagasabb szintű szolgáltatással. Csapatunk elkötelezett a minőségi alkatrészek és professzionális szerviz nyújtása mellett, hogy Ön mindig a legjobb teljesítményt kapja.</p>
       </div>
       <div class="about-text">
-        <h4>Subheading</h4>
-        <p>Body text for whatever you'd like to say. Add main takeaway points, quotes, anecdotes.</p>
+        <h4>Teljes Körű Megoldások</h4>
+        <p>Legyen szó az új gépek összeállításáról, szétöregedett komponensek cseréjéről vagy bármilyen szervizelési problémáról, mi itt vagyunk. Szállítunk használt és új alkatrészeket, előre összeszerelt PC-ket, és biztosítunk gyors, megbízható javítási szolgáltatást.</p>
       </div>
       <div class="about-text">
-        <h4>Subheading</h4>
-        <p>Body text for whatever you'd like to add more to the main point. It provides details, explanations, and context.</p>
+        <h4>Az Ön Sikere Prioritásunk</h4>
+        <p>Nem csak terméket adunk el, hanem hosszú ideig tartó partnerséget kínálunk. Szakértő csapatunk bármikor segít tanácsadással, támogatással és a legjobb megoldások megtalálásával. Hiszünk abban, hogy a jó kommunikáció és az ügyfélelégedettség a siker alapja.</p>
       </div>
     </div>
 
@@ -341,7 +341,7 @@
 <footer class="footer">
   <div class="footer-top">
     <div>
-      <h3>Site name</h3>
+      <h3>MyApp - PC Alkatrészek & Szerviz</h3>
       <div class="socials">
         <span>🌐</span>
         <span>🔗</span>
@@ -351,24 +351,27 @@
 
     <div class="links">
       <div>
-        <h4>Topic</h4>
-        <p>Page</p>
-        <p>Page</p>
-        <p>Page</p>
+        <h4>Termékek</h4>
+        <p><a href="/shop">PC Komponensek</a></p>
+        <p><a href="/shop?view=prebuilt">Előre Összeépített PC</a></p>
+        <p><a href="/pcbuild">PC Builder</a></p>
       </div>
       <div>
-        <h4>Topic</h4>
-        <p>Page</p>
-        <p>Page</p>
-        <p>Page</p>
+        <h4>Szolgáltatások</h4>
+        <p><a href="/form">Szerviz & Javítás</a></p>
+        <p><a href="/form">Gépdiagnózis</a></p>
+        <p><a href="/">Konzultáció</a></p>
       </div>
       <div>
-        <h4>Topic</h4>
-        <p>Page</p>
-        <p>Page</p>
-        <p>Page</p>
+        <h4>Ügyfél</h4>
+        <p><a href="/profile">Profilom</a></p>
+        <p><a href="/orders">Rendeléseim</a></p>
+        <p><a href="/">Gyakran Ismételt Kérdések</a></p>
       </div>
     </div>
+  </div>
+  <div class="footer-credit">
+    <p>© 2026 MyApp PC Alkatrészek & Szerviz. Minden jog fenntartva.</p>
   </div>
 </footer>
 
