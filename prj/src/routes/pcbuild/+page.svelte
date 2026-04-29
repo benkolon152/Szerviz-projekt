@@ -214,7 +214,7 @@
     const product = {
       id: `build-${Date.now()}`,
       name: "Egyedi PC",
-      image_url: "white.png",
+      image_url: "custom.jpg",
       price_huf: Number(total) || 0,
       category: "build",
       brand: "MyApp",
