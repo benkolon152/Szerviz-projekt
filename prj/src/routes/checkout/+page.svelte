@@ -9,7 +9,7 @@
   let isOpen = false;
   let isProfileOpen = false;
   let isLoggedIn = false;
-  let displayName = "Profile";
+  let displayName = "Profil";
   let userPfp = "";
   let isAdmin = false;
   let canViewInventory = false;
@@ -39,7 +39,7 @@
     if (rawUser) {
       try {
         const parsedUser = JSON.parse(rawUser);
-        displayName = parsedUser?.username || "Profile";
+        displayName = parsedUser?.username || "Profil";
         userPfp = parsedUser?.pfp || "";
         userId = parsedUser?.id ?? null;
         isAdmin = Boolean(parsedUser?.isadmin);
@@ -53,7 +53,7 @@
         savedAddressAvailable = Boolean(parsedUser?.shipping_address || parsedUser?.address || parsedUser?.postal_code || parsedUser?.address_line1 || parsedUser?.street);
         lastSavedAddress = parsedUser?.shipping_address || parsedUser?.address || "";
       } catch {
-        displayName = "Profile";
+        displayName = "Profil";
         userPfp = "";
         userId = null;
         isAdmin = false;
@@ -74,7 +74,7 @@
     if (isLoggedIn) {
       localStorage.removeItem("user");
       isLoggedIn = false;
-      displayName = "Profile";
+      displayName = "Profil";
       userPfp = "";
       isAdmin = false;
       canViewInventory = false;
@@ -239,14 +239,14 @@
     </button>
 
     <ul class="nav-links" class:open={isOpen}>
-      <li><a href="/">Home</a></li>
-      <li><a href="/shop">Store</a></li>
-      <li><a href="/pcbuild">Pc builder</a></li>
+      <li><a href="/">Kezdőlap</a></li>
+      <li><a href="/shop">Bolt</a></li>
+      <li><a href="/pcbuild">PC építő</a></li>
       {#if isAdmin}
-        <li><a href="/users">Users</a></li>
+        <li><a href="/users">Felhasználók</a></li>
       {/if}
       {#if canViewInventory}
-        <li><a href="/inventory">Inventory</a></li>
+        <li><a href="/inventory">Raktárkészlet</a></li>
       {/if}
       <CartDrawer />
       <li class="profile-dropdown">
@@ -260,12 +260,12 @@
         {#if isProfileOpen}
           <div class="dropdown-menu">
             {#if isLoggedIn}
-              <a href="/profile">My Account</a>
-              <a href="/orders">Orders</a>
+              <a href="/profile">Fiókom</a>
+              <a href="/orders">Rendeléseim</a>
               <hr />
             {/if}
             <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
-              {isLoggedIn ? "Logout" : "Login"}
+              {isLoggedIn ? "Kijelentkezés" : "Bejelentkezés"}
             </button>
           </div>
         {/if}
@@ -276,8 +276,8 @@
 
 <section class="checkout-page">
   <div class="checkout-header">
-    <h1>Checkout</h1>
-    <p>Véglegesítsd a rendelést a kosarad tartalma alapján.</p>
+        <h1>Fizetés</h1>
+      <p>Véglegesítsd a rendelést a kosarad tartalma alapján.</p>
   </div>
 
   {#if cartItems.length === 0}
@@ -326,12 +326,12 @@
 
           <div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;">
             <button type="button" class="use-saved" on:click={applySavedAddress} disabled={!userId}>
-              Use saved address
+              Használd a mentett címet
             </button>
             {#if savedAddressAvailable}
-              <small style="color:#5a6187;">Saved address available</small>
+              <small style="color:#5a6187;">Mentett cím elérhető</small>
             {:else if userId}
-              <small style="color:#5a6187;">No saved address found yet — will check orders</small>
+              <small style="color:#5a6187;">Még nincs mentett cím — a rendeléseknél keresünk</small>
             {/if}
           </div>
         </div>

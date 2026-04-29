@@ -40,7 +40,7 @@
         <input bind:value={password} type="password" placeholder="Password" style="border: none; padding: 10px; border-radius: 5px;" />
         <button type="submit" style="background-color: rgb(79, 7, 107); color: white; border: none; padding: 10px; border-radius: 5px; margin: 10px 0;">Register</button>
         <p>{message}</p>
-        <p>Already have an account? <a href="/login" id="reg">Login</a> here.</p>
+        <p>Van már fiókod? <a href="/login" id="reg">Bejelentkezés</a> itt.</p>
       </form>
     </div>
 </div>

@@ -8,7 +8,7 @@
 	let isOpen = false;
 	let isProfileOpen = false;
 	let isLoggedIn = false;
-	let displayName = "Profile";
+	let displayName = "Profil";
 	let userPfp = "";
 	let isAdmin = false;
 	let canViewInventory = false;
@@ -31,7 +31,7 @@
 		if (rawUser) {
 			try {
 				const parsedUser = JSON.parse(rawUser);
-				displayName = parsedUser?.username || "Profile";
+				displayName = parsedUser?.username || "Profil";
 				userPfp = parsedUser?.pfp || "";
 				userId = parsedUser?.id ?? null;
 				isAdmin = Boolean(parsedUser?.isadmin);
@@ -39,7 +39,7 @@
 				customerName = parsedUser?.username || "";
 				customerEmail = parsedUser?.email || "";
 			} catch {
-				displayName = "Profile";
+				displayName = "Profil";
 				userPfp = "";
 				userId = null;
 				isAdmin = false;
@@ -60,10 +60,7 @@
 		if (isLoggedIn) {
 			localStorage.removeItem("user");
 			isLoggedIn = false;
-			displayName = "Profile";
-			userPfp = "";
-			userId = null;
-			isAdmin = false;
+            displayName = "Profil";
 			canViewInventory = false;
 		}
 
@@ -135,14 +132,14 @@
 		</button>
 
 		<ul class="nav-links" class:open={isOpen}>
-			<li><a href="/">Home</a></li>
-			<li><a href="/shop">Store</a></li>
-			<li><a href="/pcbuild">Pc builder</a></li>
+			<li><a href="/">Kezdőlap</a></li>
+			<li><a href="/shop">Bolt</a></li>
+			<li><a href="/pcbuild">PC építő</a></li>
 			{#if isAdmin}
-				<li><a href="/users">Users</a></li>
+				<li><a href="/users">Felhasználók</a></li>
 			{/if}
 			{#if canViewInventory}
-				<li><a href="/inventory">Inventory</a></li>
+				<li><a href="/inventory">Raktárkészlet</a></li>
 			{/if}
 			<CartDrawer />
 			<li class="profile-dropdown">
@@ -156,12 +153,12 @@
 				{#if isProfileOpen}
 					<div class="dropdown-menu">
 						{#if isLoggedIn}
-							<a href="/profile">My Account</a>
-							<a href="/orders">Orders</a>
+							<a href="/profile">Fiókom</a>
+							<a href="/orders">Rendeléseim</a>
 							<hr />
 						{/if}
 						<button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
-							{isLoggedIn ? "Logout" : "Login"}
+							{isLoggedIn ? "Kijelentkezés" : "Bejelentkezés"}
 						</button>
 					</div>
 				{/if}

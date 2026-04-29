@@ -8,7 +8,7 @@
 	let isOpen = false;
 	let isProfileOpen = false;
 	let isLoggedIn = false;
-	let displayName = "Profile";
+	let displayName = "Profil";
 	let userPfp = "";
 	let isAdmin = false;
 	let canViewInventory = false;
@@ -30,7 +30,7 @@
 		hydrateAuthState();
 
 		if (!isAdmin) {
-			message = "Only admins can manage users.";
+			message = "Csak adminok kezelhetik a felhasználókat.";
 			return;
 		}
 
@@ -42,7 +42,7 @@
 		isLoggedIn = Boolean(rawUser);
 
 		if (!rawUser) {
-			displayName = "Profile";
+			displayName = "Profil";
 			userPfp = "";
 			isAdmin = false;
 			canViewInventory = false;
@@ -51,12 +51,12 @@
 
 		try {
 			const parsedUser = JSON.parse(rawUser);
-			displayName = parsedUser?.username || "Profile";
+			displayName = parsedUser?.username || "Profil";
 			userPfp = parsedUser?.pfp || "";
 			isAdmin = Boolean(parsedUser?.isadmin);
 			canViewInventory = isAdmin || Boolean(parsedUser?.isemployee);
 		} catch {
-			displayName = "Profile";
+			displayName = "Profil";
 			userPfp = "";
 			isAdmin = false;
 			canViewInventory = false;
@@ -75,7 +75,7 @@
 		if (isLoggedIn) {
 			localStorage.removeItem("user");
 			isLoggedIn = false;
-			displayName = "Profile";
+			displayName = "Profil";
 			userPfp = "";
 			isAdmin = false;
 			canViewInventory = false;
@@ -94,7 +94,7 @@
 			const data = await response.json().catch(() => ({}));
 
 			if (!response.ok) {
-				message = data.message || "Failed to load users.";
+				message = data.message || "A felhasználók betöltése sikertelen.";
 				users = [];
 				return;
 			}
@@ -102,17 +102,15 @@
 			users = data.users || [];
 		} catch (error) {
 			console.error("Error loading users:", error);
-			message = "Cannot reach backend server on http://localhost:3001.";
-			users = [];
-		} finally {
+			message = "Nem érem el a backend szervert a http://localhost:3001 címen.";
 			loading = false;
 		}
 	}
 
 	function getRoleLabel(user) {
 		if (user.isadmin) return "Admin";
-		if (user.isemployee) return "Employee";
-		return "User";
+		if (user.isemployee) return "Alkalmazott";
+		return "Felhasználó";
 	}
 
 	function getAvatarUrl(user) {
@@ -129,12 +127,12 @@
 		event.preventDefault();
 
 		if (!isAdmin) {
-			message = "Only admins can create users.";
+			message = "Csak adminok hozhatnak létre felhasználókat.";
 			return;
 		}
 
 		if (!isValidUserEmail(newEmail)) {
-			message = "Email must be in the format name@mail.com.";
+			message = "Az e-mailnek a következő formátumban kell lennie: név@mail.com.";
 			return;
 		}
 
@@ -158,7 +156,7 @@
 			const data = await response.json().catch(() => ({}));
 
 			if (!response.ok) {
-				message = data.message || "Failed to create user.";
+				message = data.message || "Nem sikerült létrehozni a felhasználót.";
 				return;
 			}
 
@@ -166,21 +164,21 @@
 			newEmail = "";
 			newPassword = "";
 			newRole = "user";
-			message = "User created successfully.";
+			message = "Felhasználó sikeresen létrehozva.";
 			await fetchUsers();
 		} catch (error) {
 			console.error("Error creating user:", error);
-			message = "Cannot reach backend server on http://localhost:3001.";
+			message = "A backend nem érhető el a http://localhost:3001 címen.";
 		}
 	}
 
 	async function handleDeleteUser(userId) {
 		if (!isAdmin) {
-			message = "Only admins can delete users.";
-			return;
-		}
+				message = "Csak adminok törölhetnek felhasználókat.";
+				return;
+			}
 
-		const shouldDelete = confirm("Delete this user permanently?");
+			const shouldDelete = confirm("Biztosan törlöd ezt a felhasználót véglegesen?");
 		if (!shouldDelete) return;
 
 		try {
@@ -190,15 +188,15 @@
 			const data = await response.json().catch(() => ({}));
 
 			if (!response.ok) {
-				message = data.message || "Failed to delete user.";
+				message = data.message || "Nem sikerült törölni a felhasználót.";
 				return;
 			}
 
-			message = "User deleted successfully.";
+			message = "Felhasználó sikeresen törölve.";
 			users = users.filter((user) => user.id !== userId);
 		} catch (error) {
 			console.error("Error deleting user:", error);
-			message = "Cannot reach backend server on http://localhost:3001.";
+			message = "A backend nem érhető el a http://localhost:3001 címen.";
 		}
 	}
 </script>
@@ -212,14 +210,14 @@
 		</button>
 
 		<ul class="nav-links" class:open={isOpen}>
-			<li><a href="/">Home</a></li>
-			<li><a href="/shop">Store</a></li>
-			<li><a href="/pcbuild">Pc builder</a></li>
+			<li><a href="/">Kezdőlap</a></li>
+			<li><a href="/shop">Bolt</a></li>
+			<li><a href="/pcbuild">PC építő</a></li>
 			{#if isAdmin}
 				<li><a href="/users"><b>Users</b></a></li>
 			{/if}
 			{#if canViewInventory}
-				<li><a href="/inventory">Inventory</a></li>
+				<li><a href="/inventory">Raktárkészlet</a></li>
 			{/if}
 			<CartDrawer />
 
@@ -234,12 +232,12 @@
 				{#if isProfileOpen}
 					<div class="dropdown-menu">
 						{#if isLoggedIn}
-							<a href="/profile">My Account</a>
-							<a href="/orders">Orders</a>
+							<a href="/profile">Fiókom</a>
+							<a href="/orders">Rendeléseim</a>
 							<hr />
 						{/if}
 						<button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
-							{isLoggedIn ? "Logout" : "Login"}
+							{isLoggedIn ? "Kijelentkezés" : "Bejelentkezés"}
 						</button>
 					</div>
 				{/if}
@@ -249,57 +247,57 @@
 </nav>
 
 <section class="users-page">
-	<div class="users-header">
-		<h1>User Management</h1>
-		<p>Create, review and delete platform users.</p>
-	</div>
+		<div class="users-header">
+			<h1>Felhasználókezelés</h1>
+			<p>Felhasználók létrehozása, áttekintése és törlése.</p>
+		</div>
 
 	{#if !isAdmin}
-		<div class="users-alert">
-			<p>{message || "Only admins can open this page."}</p>
-		</div>
+			<div class="users-alert">
+				<p>{message || "Csak adminok érhetik el ezt az oldalt."}</p>
+			</div>
 	{:else}
 		<div class="users-grid">
 			<div class="users-panel">
-				<h2>Add User</h2>
+				<h2>Felhasználó létrehozása</h2>
 				<form class="users-form" on:submit={handleCreateUser}>
-					<label for="newUsername">Username</label>
+					<label for="newUsername">Felhasználónév</label>
 					<input id="newUsername" bind:value={newUsername} type="text" required />
 
-					<label for="newEmail">Email</label>
+					<label for="newEmail">E-mail</label>
 					<input
 						id="newEmail"
 						bind:value={newEmail}
 						type="email"
 						pattern="^[^\s@]+@mail\.com$"
-						title="Use an email address ending in @mail.com"
+						title="Használj @mail.com végződésű e-mail címet"
 						required
 					/>
 
-					<label for="newPassword">Password</label>
+					<label for="newPassword">Jelszó</label>
 					<input id="newPassword" bind:value={newPassword} type="password" minlength="6" required />
 
-					<label for="newRole">Role</label>
+					<label for="newRole">Szerep</label>
 					<select id="newRole" bind:value={newRole}>
-						<option value="user">User</option>
-						<option value="employee">Employee</option>
+						<option value="user">Felhasználó</option>
+						<option value="employee">Alkalmazott</option>
 						<option value="admin">Admin</option>
 					</select>
 
-					<button type="submit">Create user</button>
+					<button type="submit">Felhasználó létrehozása</button>
 				</form>
 			</div>
 
 			<div class="users-panel">
 				<div class="users-list-header">
-					<h2>Users</h2>
-					<button type="button" class="secondary" on:click={fetchUsers}>Refresh</button>
+					<h2>Felhasználók</h2>
+					<button type="button" class="secondary" on:click={fetchUsers}>Frissítés</button>
 				</div>
 
-				{#if loading}
-					<p>Loading users...</p>
-				{:else if users.length === 0}
-					<p>No users found.</p>
+					{#if loading}
+						<p>Felhasználók betöltése...</p>
+					{:else if users.length === 0}
+						<p>Nincsenek felhasználók.</p>
 				{:else}
 					<div class="users-list">
 						{#each users as user}

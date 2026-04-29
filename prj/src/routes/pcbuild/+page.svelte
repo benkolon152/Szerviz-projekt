@@ -9,7 +9,7 @@
   let isOpen = false;
   let isProfileOpen = false;
   let isLoggedIn = false;
-  let displayName = "Profile";
+  let displayName = "Profil";
   let userPfp = "";
   let isAdmin = false;
   let canViewInventory = false;
@@ -30,12 +30,12 @@
     if (rawUser) {
       try {
         const parsedUser = JSON.parse(rawUser);
-        displayName = parsedUser?.username || "Profile";
+        displayName = parsedUser?.username || "Profil";
         userPfp = parsedUser?.pfp || "";
         isAdmin = Boolean(parsedUser?.isadmin);
         canViewInventory = isAdmin || Boolean(parsedUser?.isemployee);
       } catch {
-        displayName = "Profile";
+        displayName = "Profil";
         userPfp = "";
         isAdmin = false;
         canViewInventory = false;
@@ -54,7 +54,7 @@
     if (isLoggedIn) {
       localStorage.removeItem("user");
       isLoggedIn = false;
-      displayName = "Profile";
+      displayName = "Profil";
       userPfp = "";
       isAdmin = false;
       canViewInventory = false;
@@ -250,14 +250,14 @@
     </button>
     
     <ul class="nav-links" class:open={isOpen}>
-      <li><a href="/"><b>Home</b></a></li>
-      <li><a href="/shop">Store</a></li>
-      <li><a href="/pcbuild">Pc builder</a></li>
+      <li><a href="/"><b>Kezdőlap</b></a></li>
+      <li><a href="/shop">Bolt</a></li>
+      <li><a href="/pcbuild">PC építő</a></li>
       {#if isAdmin}
-        <li><a href="/users">Users</a></li>
+        <li><a href="/users">Felhasználók</a></li>
       {/if}
       {#if canViewInventory}
-        <li><a href="/inventory">Inventory</a></li>
+        <li><a href="/inventory">Raktárkészlet</a></li>
       {/if}
       <CartDrawer />
       <li class="profile-dropdown">
@@ -271,13 +271,13 @@
         {#if isProfileOpen}
           <div class="dropdown-menu">
             {#if isLoggedIn}
-              <a href="/profile">My Account</a>
-              <a href="/orders">Orders</a>
-                <a href="/saved-builds">Saved Builds</a>
+              <a href="/profile">Fiókom</a>
+              <a href="/orders">Rendeléseim</a>
+                <a href="/saved-builds">Mentett buildek</a>
               <hr />
             {/if}
             <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
-              {isLoggedIn ? "Logout" : "Login"}
+              {isLoggedIn ? "Kijelentkezés" : "Bejelentkezés"}
             </button>
           </div>
         {/if}

@@ -187,7 +187,7 @@ app.post("/api/register", async (req, res) => {
     const normalizedEmail = (email || "").trim().toLowerCase();
 
     if (!username || !normalizedEmail || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "Minden mező kitöltése kötelező" });
     }
 
     const existingUser = await pool.query(
@@ -198,7 +198,7 @@ app.post("/api/register", async (req, res) => {
     if (existingUser.rowCount > 0) {
       return res
         .status(409)
-        .json({ message: "An account with this email already exists" });
+        .json({ message: "Ehhez az e-mailhez már létezik fiók" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -206,16 +206,16 @@ app.post("/api/register", async (req, res) => {
       "INSERT INTO users (username, useremail, pw, isemployee, isadmin) VALUES ($1, $2, $3, $4, $5) RETURNING *",
       [username, normalizedEmail, hashedPassword, false, false],
     );
-    res.status(201).json({ message: "User created successfully" });
+    res.status(201).json({ message: "Felhasználó sikeresen létrehozva" });
   } catch (error) {
     if (error.code === "23505") {
       return res
         .status(409)
-        .json({ message: "An account with this email already exists" });
+        .json({ message: "Ehhez az e-mailhez már létezik fiók" });
     }
 
     console.error("Error creating user:", error);
-    res.status(500).json({ message: "Error creating user" });
+    res.status(500).json({ message: "Hiba a felhasználó létrehozásakor" });
   }
 });
 
@@ -226,7 +226,7 @@ app.post("/api/login", async (req, res) => {
     const normalizedIdentifier = (identifier || "").trim().toLowerCase();
 
     if (!normalizedIdentifier || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "Minden mező kitöltése kötelező" });
     }
 
     const result = await pool.query(
@@ -237,7 +237,7 @@ app.post("/api/login", async (req, res) => {
     if (result.rowCount === 0) {
       return res
         .status(401)
-        .json({ message: "Invalid username/email or password" });
+        .json({ message: "Érvénytelen felhasználónév/e-mail vagy jelszó" });
     }
 
     const user = result.rows[0];
@@ -246,11 +246,11 @@ app.post("/api/login", async (req, res) => {
     if (!match) {
       return res
         .status(401)
-        .json({ message: "Invalid username/email or password" });
+        .json({ message: "Érvénytelen felhasználónév/e-mail vagy jelszó" });
     }
 
     res.status(200).json({
-      message: "Login successful",
+      message: "Sikeres bejelentkezés",
       user: {
         id: user.id,
         username: user.username,
@@ -263,7 +263,7 @@ app.post("/api/login", async (req, res) => {
     });
   } catch (error) {
     console.error("Error during login:", error);
-    res.status(500).json({ message: "Error during login" });
+    res.status(500).json({ message: "Hiba a bejelentkezés során" });
   }
 });
 
@@ -275,7 +275,7 @@ app.get("/api/users", async (req, res) => {
     res.status(200).json({ users: result.rows });
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Error fetching users" });
+    res.status(500).json({ message: "Hiba a felhasználók lekérésekor" });
   }
 });
 
@@ -289,7 +289,7 @@ app.post("/api/users", async (req, res) => {
     if (!normalizedUsername || !normalizedEmail || !password) {
       return res
         .status(400)
-        .json({ message: "Username, email and password are required" });
+        .json({ message: "Felhasználónév, e-mail és jelszó megadása kötelező" });
     }
 
     const existingUser = await pool.query(
@@ -300,7 +300,7 @@ app.post("/api/users", async (req, res) => {
     if (existingUser.rowCount > 0) {
       return res
         .status(409)
-        .json({ message: "An account with this email already exists" });
+        .json({ message: "Ehhez az e-mailhez már létezik fiók" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -316,18 +316,18 @@ app.post("/api/users", async (req, res) => {
     );
 
     res.status(201).json({
-      message: "User created successfully",
+      message: "Felhasználó sikeresen létrehozva",
       user: createdUser.rows[0],
     });
   } catch (error) {
     if (error.code === "23505") {
       return res
         .status(409)
-        .json({ message: "An account with this email already exists" });
+        .json({ message: "Ehhez az e-mailhez már létezik fiók" });
     }
 
     console.error("Error creating user:", error);
-    res.status(500).json({ message: "Error creating user" });
+    res.status(500).json({ message: "Hiba a felhasználó létrehozásakor" });
   }
 });
 
@@ -349,10 +349,10 @@ app.post("/api/builds", async (req, res) => {
       [user_id || null, normalizedName, componentsJson, servicesJson, metadataJson, total]
     );
 
-    res.status(201).json({ message: 'Build saved', build: result.rows[0] });
+    res.status(201).json({ message: 'Build elmentve', build: result.rows[0] });
   } catch (error) {
     console.error('Error saving build:', error);
-    res.status(500).json({ message: 'Error saving build' });
+    res.status(500).json({ message: 'Hiba a build mentésekor' });
   }
 });
 
@@ -377,7 +377,7 @@ app.get("/api/builds", async (req, res) => {
     res.status(200).json({ builds: result.rows });
   } catch (error) {
     console.error("Error fetching builds:", error);
-    res.status(500).json({ message: "Error fetching builds" });
+    res.status(500).json({ message: "Hiba a buildek lekérésekor" });
   }
 });
 
@@ -385,7 +385,7 @@ app.delete("/api/users/:id", async (req, res) => {
   const userId = Number(req.params.id);
 
   if (!Number.isInteger(userId) || userId <= 0) {
-    return res.status(400).json({ message: "Invalid user id" });
+    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   try {
@@ -395,13 +395,13 @@ app.delete("/api/users/:id", async (req, res) => {
     );
 
     if (deletedUser.rowCount === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Felhasználó nem található" });
     }
 
-    res.status(200).json({ message: "User deleted successfully" });
+    res.status(200).json({ message: "Felhasználó sikeresen törölve" });
   } catch (error) {
     console.error("Error deleting user:", error);
-    res.status(500).json({ message: "Error deleting user" });
+    res.status(500).json({ message: "Hiba a felhasználó törlésekor" });
   }
 });
 
@@ -409,7 +409,7 @@ app.get("/api/users/:id/profile", async (req, res) => {
   const userId = Number(req.params.id);
 
   if (!Number.isInteger(userId) || userId <= 0) {
-    return res.status(400).json({ message: "Invalid user id" });
+    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   try {
@@ -421,7 +421,7 @@ app.get("/api/users/:id/profile", async (req, res) => {
     );
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Felhasználó nem található" });
     }
 
     res.status(200).json({ user: result.rows[0] });
@@ -437,7 +437,7 @@ app.put("/api/users/:id/profile", async (req, res) => {
     req.body;
 
   if (!Number.isInteger(userId) || userId <= 0) {
-    return res.status(400).json({ message: "Invalid user id" });
+    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   const normalizedEmail = String(email || "")
@@ -477,18 +477,18 @@ app.put("/api/users/:id/profile", async (req, res) => {
     );
 
     if (updatedUser.rowCount === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Felhasználó nem található" });
     }
 
     res
       .status(200)
       .json({
-        message: "Profile updated successfully",
+        message: "Profil sikeresen frissítve",
         user: updatedUser.rows[0],
       });
   } catch (error) {
     console.error("Error updating user profile:", error);
-    res.status(500).json({ message: "Error updating user profile" });
+    res.status(500).json({ message: "Hiba a profil frissítésekor" });
   }
 });
 
@@ -496,7 +496,7 @@ app.get("/api/users/:id/orders", async (req, res) => {
   const userId = Number(req.params.id);
 
   if (!Number.isInteger(userId) || userId <= 0) {
-    return res.status(400).json({ message: "Invalid user id" });
+    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   try {
@@ -515,7 +515,7 @@ app.get("/api/users/:id/orders", async (req, res) => {
     res.status(200).json({ orders: result.rows });
   } catch (error) {
     console.error("Error fetching user orders:", error);
-    res.status(500).json({ message: "Error fetching user orders" });
+    res.status(500).json({ message: "Hiba a felhasználó rendeléseinek lekérésekor" });
   }
 });
 
@@ -564,7 +564,7 @@ app.post("/api/orders", async (req, res) => {
     normalizedUserId !== null &&
     (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0)
   ) {
-    return res.status(400).json({ message: "Invalid user id" });
+    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   if (!normalizedCustomerName || !normalizedCustomerEmail) {
@@ -645,12 +645,12 @@ app.post("/api/orders", async (req, res) => {
     );
 
     res.status(201).json({
-      message: "Order created successfully",
+      message: "Rendelés sikeresen létrehozva",
       order: createdOrder.rows[0],
     });
   } catch (error) {
     console.error("Error creating order:", error);
-    res.status(500).json({ message: "Error creating order" });
+    res.status(500).json({ message: "Hiba a rendelés létrehozásakor" });
   }
 });
 
@@ -670,7 +670,7 @@ app.get("/api/comments", async (req, res) => {
     res.status(200).json({ comments: result.rows });
   } catch (error) {
     console.error("Error fetching comments:", error);
-    res.status(500).json({ message: "Error fetching comments" });
+    res.status(500).json({ message: "Hiba a hozzászólások lekérésekor" });
   }
 });
 
@@ -688,7 +688,7 @@ app.post("/api/comments", async (req, res) => {
     normalizedUserId !== null &&
     (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0)
   ) {
-    return res.status(400).json({ message: "Invalid user id" });
+    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   if (!normalizedUser || !normalizedContent) {
@@ -713,7 +713,7 @@ app.post("/api/comments", async (req, res) => {
     );
 
     res.status(201).json({
-      message: "Comment created successfully",
+      message: "Hozzászólás sikeresen létrehozva",
       comment: createdComment.rows[0],
     });
   } catch (error) {
@@ -740,7 +740,7 @@ app.delete("/api/comments/:id", async (req, res) => {
     );
 
     if (comment.rowCount === 0) {
-      return res.status(404).json({ message: "Comment not found" });
+      return res.status(404).json({ message: "Hozzászólás nem található" });
     }
 
     const commentUserId = comment.rows[0]?.user_id;
@@ -757,10 +757,10 @@ app.delete("/api/comments/:id", async (req, res) => {
       [commentId],
     );
 
-    res.status(200).json({ message: "Comment deleted successfully" });
+    res.status(200).json({ message: "Hozzászólás sikeresen törölve" });
   } catch (error) {
     console.error("Error deleting comment:", error);
-    res.status(500).json({ message: "Error deleting comment" });
+    res.status(500).json({ message: "Hiba a hozzászólás törlésekor" });
   }
 });
 
@@ -777,7 +777,7 @@ app.get("/api/inventory", async (req, res) => {
     res.status(200).json({ items: result.rows });
   } catch (error) {
     console.error("Error fetching inventory:", error);
-    res.status(500).json({ message: "Error fetching inventory" });
+    res.status(500).json({ message: "Hiba a raktárkészlet lekérésekor" });
   }
 });
 
@@ -794,7 +794,7 @@ app.post("/api/inventory", async (req, res) => {
   ) {
     return res
       .status(400)
-      .json({ message: "Name, category, brand, model and price are required" });
+      .json({ message: "A név, kategória, márka, modell és az ár megadása kötelező" });
   }
 
   try {
