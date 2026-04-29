@@ -732,8 +732,6 @@
                     <button type="button" class="back-to-shop" on:click={goToShop}>Összes termék megtekintése</button>
                 </div>
             </div>
-            <p class="section-status">Ezek a gépek még nincsenek az adatbázisban, ezért külön, statikus ajánlatként jelennek meg.</p>
-
             <div class="featured-grid prebuilt-grid">
                 {#each sortedPrebuiltItems as item}
                     <div
@@ -776,7 +774,7 @@
                     {/each}
 
                     <button class="category-tile" type="button" on:click={openPrebuiltView}>
-                        <img class="category-image" src="white.png" alt="Előre összeszerelt PC-k" loading="lazy" />
+                        <img class="category-image" src="https://uavftnxveesjyonfmhak.supabase.co/storage/v1/object/public/partpictures/prebuilts/2.jpg" alt="Előre összeszerelt PC-k" loading="lazy" />
                         <span class="category-label">Előre összeszerelt PC-k</span>
                     </button>
                 </div>
@@ -792,13 +790,26 @@
             {:else}
                 <div class="featured-grid">
                     {#each featuredItems as item}
-                        <button class="cards featured-card" type="button" on:click={() => openItemDetails(item)}>
-                            <img class="image featured-image" src={item.image_url} alt={item.name} loading="lazy">
-                            <div class="cards-content">
-                                <p class="featured-name">{item.name}</p>
-                                <p class="featured-price">{formatPrice(item.price_huf)}</p>
+                        <article class="featured-card-shell">
+                            <div
+                                class="cards featured-card"
+                                role="button"
+                                tabindex="0"
+                                on:click={() => openItemDetails(item)}
+                                on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); openItemDetails(item); } }}
+                            >
+                                <img class="image featured-image" src={item.image_url} alt={item.name} loading="lazy">
+                                <div class="cards-content">
+                                    <p class="featured-name">{item.name}</p>
+                                    <p class="featured-price">{formatPrice(item.price_huf)}</p>
+                                    <button type="button" class="featured-quick-add" aria-label="Kosárba tesz" on:click|stopPropagation={() => handleQuickAddToCart(item)}>
+                                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2Zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2ZM7.17 14h9.92c.75 0 1.41-.41 1.75-1.03L22 6.5l-1.74-1-3.09 5.5H8.1L4.27 3H1v2h2l3.6 7.59-1.35 2.44C4.52 16.37 5.48 18 7 18h12v-2H7l1.17-2Z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
-                        </button>
+                        </article>
                     {/each}
                 </div>
             {/if}
@@ -1055,17 +1066,59 @@
         color: inherit;
     }
 
+    .featured-card-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
     .featured-card {
         min-height: 100%;
+        width: 100%;
         cursor: pointer;
         text-align: left;
         border: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        flex-direction: column;
     }
 
     .featured-card :global(.cards-content) {
         min-height: 86px;
         background: #ffffff;
         border-top: 1px solid #ececf3;
+        display: grid;
+        gap: 10px;
+    }
+
+    .featured-quick-add {
+        border: none;
+        border-radius: 8px;
+        background: #08a93f;
+        color: white;
+        width: 42px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font: inherit;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .featured-quick-add svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+    }
+
+    .featured-quick-add:hover {
+        background: #079137;
+        transform: translateY(-1px);
+    }
+
+    .featured-quick-add:hover {
+        background: #079137;
+        transform: translateY(-1px);
     }
 
     .featured-image {

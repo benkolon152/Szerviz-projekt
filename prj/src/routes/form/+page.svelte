@@ -219,7 +219,6 @@
 			<h2>Mit kapsz</h2>
 			<ul>
 				<li>Rögzített szerviz kérés a rendelési listában</li>
-				<li>Automatikus <b>needs_repair</b> státusz</li>
 				<li>Nyomon követhető a profilod Orders menüpontjából</li>
 			</ul>
 		</aside>
