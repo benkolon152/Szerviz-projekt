@@ -110,7 +110,7 @@
   <div class="highlight">
     <div class="cards-container">
       <a class="cards featured-link-card" href="/shop?view=prebuilt" on:click|preventDefault={openFeaturedShop}>
-        <img class="image" src="white.png" alt="kep">
+        <img class="image" src="https://uavftnxveesjyonfmhak.supabase.co/storage/v1/object/public/partpictures/prebuilts/3.jpg" alt="kep">
         <div class="cards-content">
             <h4>Előre összeszerelt PC-k</h4>
             <p>Minőségi, előre összeszerelt számítógépek a kedvező árú modellektől a legerősebb konfigurációkig.</p>
@@ -132,45 +132,6 @@
       </a>
     </div>
   </div>
-  
-<h1 class="cimek">PC Buildek</h1>
-  <div class="pck">
-    <div class="cards-container">
-      <div class="cards wide-card">
-        <img class="image" src="white.png" alt="kep">
-        <div class="cards-content">
-            <h4>Alcím</h4>
-            <p>Szöveg helye – itt megoszthat bővebb információkat az ajánlatról vagy szolgáltatásról.</p>
-        </div>
-      </div>
-      <div class="cards wide-card">
-        <img class="image" src="white.png" alt="kep">
-        <div class="cards-content">
-            <h4>Alcím</h4>
-            <p>Szöveg helye – itt megoszthat bővebb információkat az ajánlatról vagy szolgáltatásról.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <h1 class="cimek">Egyéb Buildek</h1>
-  <div class="grid-double">
-    <div class="cards wide-card">
-      <img class="image" src="white.png" alt="Build">
-      <div class="cards-content">
-        <h4>Alcím</h4>
-        <p>Szöveg helye – részletek az ajánlatról.</p>
-      </div>
-    </div>
-    <div class="cards wide-card">
-      <img class="image" src="white.png" alt="Build">
-      <div class="cards-content">
-        <h4>Alcím</h4>
-        <p>Szöveg helye – részletek az ajánlatról.</p>
-      </div>
-    </div>
-  </div>
-
 <section class="about">
     <div class="about-content">
       <h2>Rólunk</h2>
@@ -189,7 +150,7 @@
     </div>
 
     <div class="image-container">
-      <img class="image" src="white.png" alt="About image" />
+      <img class="image" src="white.png" alt="" />
     </div>
   </section>
 
