@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import CartDrawer from "$lib/components/CartDrawer.svelte";
+  import { cart, cartOpen } from "$lib/cart";
 
   const API_BASE = "http://localhost:3001";
 
@@ -205,6 +206,32 @@
       console.error(err);
       message = "Hálózati hiba a build mentésekor.";
     }
+  }
+
+  function handleAddToCart() {
+    const buildName = `Build: ${new Date().toLocaleString()}`;
+
+    const product = {
+      id: `build-${Date.now()}`,
+      name: "Egyedi PC",
+      image_url: "white.png",
+      price_huf: Number(total) || 0,
+      category: "build",
+      brand: "MyApp",
+      model: null,
+      specifications: {
+        components: selectedParts,
+        services: {
+          osszeszereles: Boolean(services.osszeszereles.checked),
+          bios: Boolean(services.bios.checked),
+          teszteles: Boolean(services.teszteles.checked),
+        },
+        parts_total: Number(partsTotal) || 0,
+      },
+    };
+
+    cart.addItem(product, 1);
+    cartOpen.open();
   }
 
   $: if (isModalOpen || searchQuery !== undefined) {

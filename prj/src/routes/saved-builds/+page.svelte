@@ -104,7 +104,7 @@
   .build-item { background: rgba(255,255,255,0.04); padding: 12px; border-radius: 8px; }
   .build-meta { display:flex; gap:12px; align-items:center; }
   .build-actions { margin-top:8px; }
-  button { padding:8px 12px; border-radius:8px; border:none; background:#1b5cff; color:white; cursor:pointer; }
+  
 
   .components-grid {
     display: grid;
