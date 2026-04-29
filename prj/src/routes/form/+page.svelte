@@ -174,7 +174,7 @@
 	<div class="repair-hero">
 		<p class="eyebrow">Szerviz és javítás</p>
 		<h1>Adj le javítási kérést</h1>
-		<p>Írd le, milyen gépről van szó és mi a probléma. Ez a kérés a rendeléseid között jelenik meg <b>needs_repair</b> státusszal.</p>
+		<p>Írd le, milyen gépről van szó és mi a probléma. Ez a kérés a rendeléseid között jelenik meg.</p>
 	</div>
 
 	<div class="repair-grid">

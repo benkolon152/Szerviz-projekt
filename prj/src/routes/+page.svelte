@@ -119,14 +119,16 @@
         </div>
       </a>
       <a class="cards featured-link-card" href="/form" on:click|preventDefault={openRepairForm}>
-        <img class="image" src="white.png" alt="kep">
+        <div class="middle-card-image-shell">
+          <img class="image" src="repair.jpg" alt="kep">
+        </div>
         <div class="cards-content">
             <h4>Szerviz és javítás</h4>
             <p>Bármilyen számítógépes probléma megoldható.</p>
         </div>
       </a>
       <a class="cards featured-link-card" href="/shop" on:click|preventDefault={() => goto("/shop")}>
-        <img class="image" src="white.png" alt="kep">
+        <img class="image" src="https://uavftnxveesjyonfmhak.supabase.co/storage/v1/object/public/partpictures/pc-components/10604.jpg" alt="kep">
         <div class="cards-content">
             <h4>Használt és új alkatrészek</h4>
             <p>Szöveg helye – itt megoszthat bővebb információkat az ajánlatról vagy szolgáltatásról.</p>
@@ -240,5 +242,9 @@
   transform: translateY(-6px) scale(1.03);
   box-shadow: 0 14px 30px rgba(2,6,23,0.12), 0 6px 12px rgba(2,6,23,0.06);
   z-index: 2;
+}
+
+.middle-card-image-shell {
+  background: #fff;
 }
 </style>
