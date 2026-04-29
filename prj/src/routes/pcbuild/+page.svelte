@@ -1,8 +1,55 @@
 <script>
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+
   let isOpen = false;
+  let isProfileOpen = false;
+  let isLoggedIn = false;
+  let displayName = "Profile";
+  let userPfp = "";
+  let isAdmin = false;
+  let canViewInventory = false;
+
+  onMount(() => {
+    const rawUser = localStorage.getItem("user");
+    isLoggedIn = Boolean(rawUser);
+
+    if (rawUser) {
+      try {
+        const parsedUser = JSON.parse(rawUser);
+        displayName = parsedUser?.username || "Profile";
+        userPfp = parsedUser?.pfp || "";
+        isAdmin = Boolean(parsedUser?.isadmin);
+        canViewInventory = isAdmin || Boolean(parsedUser?.isemployee);
+      } catch {
+        displayName = "Profile";
+        userPfp = "";
+        isAdmin = false;
+        canViewInventory = false;
+      }
+    }
+  });
 
   function toggle() {
     isOpen = !isOpen;
+  }
+
+  function toggleProfile() {
+    isProfileOpen = !isProfileOpen;
+  }
+
+  function handleAuthAction() {
+    if (isLoggedIn) {
+      localStorage.removeItem("user");
+      isLoggedIn = false;
+      displayName = "Profile";
+      userPfp = "";
+      isAdmin = false;
+      canViewInventory = false;
+    }
+
+    isProfileOpen = false;
+    goto("/login");
   }
 
   // Szolgáltatások állapotai és árai
@@ -33,12 +80,37 @@
       ☰
     </button>
     
-    <ul class:open={isOpen}>
+    <ul class="nav-links" class:open={isOpen}>
       <li><a href="/">Home</a></li>
       <li><a href="/shop">Store</a></li>
       <li><a href="/pcbuild"><b>Pc builder</b></a></li>
-      <li><a href="/">Profile</a></li>
-      <li><a href="/login">Login</a></li>
+      {#if isAdmin}
+        <li><a href="/users">Users</a></li>
+      {/if}
+      {#if canViewInventory}
+        <li><a href="/inventory">Inventory</a></li>
+      {/if}
+      <li class="profile-dropdown">
+        <button class="dropdown-trigger" on:click={toggleProfile}>
+          {#if userPfp}
+            <img src={userPfp} alt="Profilkép" style="width:22px;height:22px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;" />
+          {/if}
+          {displayName} ▾
+        </button>
+
+        {#if isProfileOpen}
+          <div class="dropdown-menu">
+            {#if isLoggedIn}
+              <a href="/profile">My Account</a>
+              <a href="/orders">Orders</a>
+              <hr />
+            {/if}
+            <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
+              {isLoggedIn ? "Logout" : "Login"}
+            </button>
+          </div>
+        {/if}
+      </li>
     </ul>
   </div>
 </nav>
@@ -67,12 +139,9 @@
   <h3 class="section-title">EXTRÁK</h3>
   <div class="builder-section">
     <div class="builder-row"><span>Monitor</span> <button class="btn-add">Hozzáadás +</button></div>
-    <div class="builder-row"><span>Billentyűzet és egér</span> <button class="btn-add">Hozzáadás +</button></div>
     <div class="builder-row"><span>Billentyűzet</span> <button class="btn-add">Hozzáadás +</button></div>
     <div class="builder-row"><span>Egér</span> <button class="btn-add">Hozzáadás +</button></div>
     <div class="builder-row"><span>Operációs rendszer</span> <button class="btn-add">Hozzáadás +</button></div>
-    <div class="builder-row"><span>Irodai alkalmazás</span> <button class="btn-add">Hozzáadás +</button></div>
-    <div class="builder-row"><span>Biztonsági szoftver</span> <button class="btn-add">Hozzáadás +</button></div>
   </div>
 
   <h3 class="section-title">SZOLGÁLTATÁSOK</h3>
@@ -112,7 +181,7 @@
         <span>Összesen</span>
         <strong>{formatPrice(total)}</strong>
       </div>
-      <button class="btn-buy">Megveszem</button>
+      <button class="btn-buy">Kosárba</button>
     </div>
   </div>
 
