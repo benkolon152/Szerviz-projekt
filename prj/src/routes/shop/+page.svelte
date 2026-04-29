@@ -81,7 +81,7 @@
             id: "prebuilt-starter",
             name: "Starter Game Box",
             category: "prebuilt",
-            brand: "MyApp",
+            brand: "PcD",
             model: "Starter",
             price_huf: 329900,
             image_url: "white.png",
@@ -91,7 +91,7 @@
             id: "prebuilt-balanced",
             name: "Balanced Creator PC",
             category: "prebuilt",
-            brand: "MyApp",
+            brand: "PcD",
             model: "Balanced",
             price_huf: 569900,
             image_url: "white.png",
@@ -101,7 +101,7 @@
             id: "prebuilt-pro",
             name: "Pro Performance Tower",
             category: "prebuilt",
-            brand: "MyApp",
+            brand: "PcD",
             model: "Pro",
             price_huf: 899900,
             image_url: "white.png",
@@ -617,7 +617,7 @@
 
 <nav class="navbar">
   <div class="nav-container">
-    <a href="/" class="logo">MyApp</a> <!-- TODO logo-->
+    <a href="/" class="logo">PcD</a> <!-- TODO logo-->
 
     <button class="hamburger" on:click={toggle}>
       ☰
@@ -648,6 +648,7 @@
                         {#if isLoggedIn}
                             <a href="/profile">Fiókom</a>
                             <a href="/orders">Rendeléseim</a>
+                            <a href="/saved-builds">Mentett buildek</a>
                             <hr />
                         {/if}
                         <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>

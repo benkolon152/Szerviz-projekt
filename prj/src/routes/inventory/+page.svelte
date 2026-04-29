@@ -277,7 +277,7 @@
 <!-- ---------------------------------NAV-------------------------------- -->
 <nav class="navbar">
   <div class="nav-container">
-    <a href="/" class="logo">MyApp</a> <!-- TODO logo-->
+    <a href="/" class="logo">PcD</a> <!-- TODO logo-->
 
     <button class="hamburger" on:click={toggle}>
       ☰
@@ -308,6 +308,7 @@
             {#if isLoggedIn}
               <a href="/profile">Fiókom</a>
               <a href="/orders">Rendeléseim</a>
+              <a href="/saved-builds">Mentett buildek</a>
               <hr />
             {/if}
             <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>

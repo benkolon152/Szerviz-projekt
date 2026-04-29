@@ -103,6 +103,7 @@
 		} catch (error) {
 			console.error("Error loading users:", error);
 			message = "Nem érem el a backend szervert a http://localhost:3001 címen.";
+		} finally {
 			loading = false;
 		}
 	}
@@ -203,7 +204,7 @@
 
 <nav class="navbar">
 	<div class="nav-container">
-		<a href="/" class="logo">MyApp</a>
+		<a href="/" class="logo">PcD</a>
 
 		<button class="hamburger" on:click={toggle}>
 			☰
@@ -214,7 +215,7 @@
 			<li><a href="/shop">Bolt</a></li>
 			<li><a href="/pcbuild">PC építő</a></li>
 			{#if isAdmin}
-				<li><a href="/users"><b>Users</b></a></li>
+				<li><a href="/users"><b>Felhasználók</b></a></li>
 			{/if}
 			{#if canViewInventory}
 				<li><a href="/inventory">Raktárkészlet</a></li>
@@ -234,6 +235,7 @@
 						{#if isLoggedIn}
 							<a href="/profile">Fiókom</a>
 							<a href="/orders">Rendeléseim</a>
+							<a href="/saved-builds">Mentett buildek</a>
 							<hr />
 						{/if}
 						<button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
@@ -311,7 +313,7 @@
 								</div>
 
 								<button type="button" class="danger" on:click={() => handleDeleteUser(user.id)}>
-									Delete
+								Törlés
 								</button>
 							</article>
 						{/each}

@@ -152,9 +152,19 @@
     closeModal(); // 
   }
 
+  function removePart(category) {
+    if (!selectedParts[category]) {
+      return;
+    }
+
+    const nextParts = { ...selectedParts };
+    delete nextParts[category];
+    selectedParts = nextParts;
+  }
+
   async function handleSaveBuild() {
     // prompt for a build name
-    const name = window.prompt("Build neve:", `MyApp build ${new Date().toLocaleString()}`);
+    const name = window.prompt("Build neve:", `PcD build ${new Date().toLocaleString()}`);
 
     if (name === null) {
       // user cancelled
@@ -217,7 +227,7 @@
       image_url: "custom.jpg",
       price_huf: Number(total) || 0,
       category: "build",
-      brand: "MyApp",
+      brand: "PcD",
       model: null,
       specifications: {
         components: selectedParts,
@@ -243,7 +253,7 @@
 
 <nav class="navbar">
   <div class="nav-container">
-    <a href="/" class="logo">MyApp</a>
+    <a href="/" class="logo">PcD</a>
 
     <button class="hamburger" on:click={toggle}>
       ☰
@@ -252,7 +262,7 @@
     <ul class="nav-links" class:open={isOpen}>
       <li><a href="/"><b>Kezdőlap</b></a></li>
       <li><a href="/shop">Bolt</a></li>
-      <li><a href="/pcbuild">PC építő</a></li>
+      <li><a href="/pcbuild"><b>PC építő</b></a></li>
       {#if isAdmin}
         <li><a href="/users">Felhasználók</a></li>
       {/if}
@@ -300,6 +310,7 @@
               <span class="part-name">{selectedParts["Cpu"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["Cpu"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("Cpu")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -318,6 +329,7 @@
               <span class="part-name">{selectedParts["Motherboard"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["Motherboard"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("Motherboard")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -336,6 +348,7 @@
               <span class="part-name">{selectedParts["PC case"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["PC case"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("PC case")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -357,6 +370,7 @@
               <span class="part-name">{selectedParts["Gpu"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["Gpu"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("Gpu")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -375,6 +389,7 @@
               <span class="part-name">{selectedParts["Ram"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["Ram"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("Ram")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -393,6 +408,7 @@
               <span class="part-name">{selectedParts["PSU"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["PSU"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("PSU")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -411,6 +427,7 @@
               <span class="part-name">{selectedParts["HDD"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["HDD"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("HDD")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -429,6 +446,7 @@
               <span class="part-name">{selectedParts["SSD"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["SSD"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("SSD")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -447,6 +465,7 @@
               <span class="part-name">{selectedParts["Optical drive"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["Optical drive"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("Optical drive")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -465,6 +484,7 @@
               <span class="part-name">{selectedParts["CPU cooler"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["CPU cooler"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("CPU cooler")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -483,6 +503,7 @@
               <span class="part-name">{selectedParts["Liquid Cooler"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["Liquid Cooler"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("Liquid Cooler")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -504,6 +525,7 @@
               <span class="part-name">{selectedParts["Monitor"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["Monitor"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("Monitor")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -522,6 +544,7 @@
               <span class="part-name">{selectedParts["Keyboard"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["Keyboard"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("Keyboard")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -540,6 +563,7 @@
               <span class="part-name">{selectedParts["Mouse"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["Mouse"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("Mouse")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -558,6 +582,7 @@
               <span class="part-name">{selectedParts["OS"].name}</span>
               <span class="part-price">{formatPrice(selectedParts["OS"].price_huf)}</span>
             </div>
+            <button type="button" class="part-remove-btn" on:click={() => removePart("OS")}>Törlés</button>
           </div>
         {/if}
       </div>
@@ -686,6 +711,20 @@
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     max-width: fit-content;
+  }
+
+  .part-remove-btn {
+    border: none;
+    background: rgba(255, 92, 92, 0.18);
+    color: #ffb7b7;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .part-remove-btn:hover {
+    background: rgba(255, 92, 92, 0.3);
   }
 
   .part-thumb {

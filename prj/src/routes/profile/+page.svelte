@@ -192,7 +192,7 @@
 
 <nav class="navbar">
   <div class="nav-container">
-    <a href="/" class="logo">MyApp</a>
+    <a href="/" class="logo">PcD</a>
 
     <button class="hamburger" on:click={toggle}>
       ☰
@@ -222,6 +222,7 @@
             {#if isLoggedIn}
               <a href="/profile"><b>Fiókom</b></a>
               <a href="/orders">Rendeléseim</a>
+              <a href="/saved-builds">Mentett buildek</a>
               <hr />
             {/if}
             <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>

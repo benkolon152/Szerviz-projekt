@@ -85,8 +85,9 @@
         {#if isProfileOpen}
           <div class="dropdown-menu">
             {#if isLoggedIn}
-              <a href="/profile">Fiókom</a>
-              <a href="/orders">Rendeléseim</a>
+              <a href="/profile">My Account</a>
+              <a href="/orders">Orders</a>
+              <a href="/saved-builds">Saved Builds</a>
               <hr />
             {/if}
             <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
