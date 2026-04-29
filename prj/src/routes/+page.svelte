@@ -342,11 +342,6 @@
   <div class="footer-top">
     <div>
       <h3>MyApp - PC Alkatrészek & Szerviz</h3>
-      <div class="socials">
-        <span>🌐</span>
-        <span>🔗</span>
-        <span>📸</span>
-      </div>
     </div>
 
     <div class="links">
@@ -366,7 +361,7 @@
         <h4>Ügyfél</h4>
         <p><a href="/profile">Profilom</a></p>
         <p><a href="/orders">Rendeléseim</a></p>
-        <p><a href="/">Gyakran Ismételt Kérdések</a></p>
+        <!-- <p><a href="/">Gyakran Ismételt Kérdések</a></p> -->
       </div>
     </div>
   </div>
@@ -468,5 +463,25 @@
 
 .delete-comment-btn:hover {
   background: #ee5a5a;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.links {
+  display: flex;
+  gap: 60px;
+  flex: 1;
+  min-width: 0;
+}
+
+.links div {
+  flex: 1;
+  min-width: 140px;
 }
 </style>
