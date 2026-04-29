@@ -1,14 +1,42 @@
 <script>
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
+  import CartDrawer from "$lib/components/CartDrawer.svelte";
 
   const API_BASE = "http://localhost:3001";
+
+  let isOpen = false;
+  let isProfileOpen = false;
+  let isLoggedIn = false;
+  let displayName = "Profil";
+  let userPfp = "";
+  let isAdmin = false;
+  let canViewInventory = false;
 
   let builds = [];
   let loading = true;
   let error = "";
+  let deleteError = "";
 
   onMount(async () => {
+    const rawUser = localStorage.getItem("user");
+    isLoggedIn = Boolean(rawUser);
+
+    if (rawUser) {
+      try {
+        const parsedUser = JSON.parse(rawUser);
+        displayName = parsedUser?.username || "Profil";
+        userPfp = parsedUser?.pfp || "";
+        isAdmin = Boolean(parsedUser?.isadmin);
+        canViewInventory = isAdmin || Boolean(parsedUser?.isemployee);
+      } catch {
+        displayName = "Profil";
+        userPfp = "";
+        isAdmin = false;
+        canViewInventory = false;
+      }
+    }
+
     loading = true;
     error = "";
 
@@ -39,10 +67,56 @@
     }
   });
 
+  function toggle() {
+    isOpen = !isOpen;
+  }
+
+  function toggleProfile() {
+    isProfileOpen = !isProfileOpen;
+  }
+
+  function handleAuthAction() {
+    if (isLoggedIn) {
+      localStorage.removeItem("user");
+      isLoggedIn = false;
+      displayName = "Profil";
+      userPfp = "";
+      isAdmin = false;
+      canViewInventory = false;
+    }
+
+    isProfileOpen = false;
+    goto("/login");
+  }
+
   function formatDate(ts) {
     try {
       return new Date(ts).toLocaleString("hu-HU");
     } catch { return String(ts); }
+  }
+
+  async function deleteBuild(buildId) {
+    if (!confirm("Biztosan törlöd ezt a buildet?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/builds/${buildId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        deleteError = data?.message || "Nem sikerült törölni a buildet.";
+        return;
+      }
+
+      builds = builds.filter(b => b.id !== buildId);
+      deleteError = "";
+    } catch (err) {
+      console.error(err);
+      deleteError = "Hálózati hiba a törlés során.";
+    }
   }
 
   function goToBuilder(build) {
@@ -52,16 +126,66 @@
 </script>
 
 <div class="saved-builds-page">
-  <h1>Mentett buildjeim</h1>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="logo">PcD</a>
 
-  {#if loading}
-    <p>Töltés...</p>
-  {:else if error}
-    <p class="error">{error}</p>
-  {:else if builds.length === 0}
-    <p>Nincsenek mentett buildjeid.</p>
-  {:else}
-    <ul class="build-list">
+      <button class="hamburger" on:click={toggle}>
+        ☰
+      </button>
+
+      <ul class="nav-links" class:open={isOpen}>
+        <li><a href="/">Kezdőlap</a></li>
+        <li><a href="/shop">Bolt</a></li>
+        <li><a href="/pcbuild">PC építő</a></li>
+        {#if isAdmin}
+          <li><a href="/users">Felhasználók</a></li>
+        {/if}
+        {#if canViewInventory}
+          <li><a href="/inventory">Raktárkészlet</a></li>
+        {/if}
+        <CartDrawer />
+        <li class="profile-dropdown">
+          <button class="dropdown-trigger" on:click={toggleProfile}>
+            {#if userPfp}
+              <img src={userPfp} alt="Profilkép" style="width:22px;height:22px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;" />
+            {/if}
+            {displayName} ▾
+          </button>
+
+          {#if isProfileOpen}
+            <div class="dropdown-menu">
+              {#if isLoggedIn}
+                <a href="/profile">Fiókom</a>
+                <a href="/orders">Rendeléseim</a>
+                <a href="/saved-builds"><b>Mentett buildek</b></a>
+                <hr />
+              {/if}
+              <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
+                {isLoggedIn ? "Kijelentkezés" : "Bejelentkezés"}
+              </button>
+            </div>
+          {/if}
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-content">
+    <h1>Mentett buildjeim</h1>
+
+    {#if deleteError}
+      <p class="error">{deleteError}</p>
+    {/if}
+
+    {#if loading}
+      <p>Töltés...</p>
+    {:else if error}
+      <p class="error">{error}</p>
+    {:else if builds.length === 0}
+      <p>Nincsenek mentett buildjeid.</p>
+    {:else}
+      <ul class="build-list">
       {#each builds as b}
         <li class="build-item">
           <div class="build-meta">
@@ -70,6 +194,8 @@
             <span class="build-total">{new Intl.NumberFormat('hu-HU').format(Number(b.total_huf || 0))} Ft</span>
           </div>
           <div class="build-actions">
+            <button class="action-btn primary-btn" on:click={() => goToBuilder(b)}>Szerkesztés</button>
+            <button class="action-btn delete-btn" on:click={() => deleteBuild(b.id)}>Törlés</button>
           </div>
           <details class="build-details">
             <summary>Komponensek</summary>
@@ -94,42 +220,46 @@
           </details>
         </li>
       {/each}
-    </ul>
-  {/if}
+      </ul>
+    {/if}
+  </div>
 </div>
 
 <style>
-  .saved-builds-page { max-width: 1000px; margin: 36px auto; color: white; }
-  .build-list { list-style: none; padding: 0; display: grid; gap: 12px; }
-  .build-item { background: rgba(255,255,255,0.04); padding: 12px; border-radius: 8px; }
-  .build-meta { display:flex; gap:12px; align-items:center; }
-  .build-actions { margin-top:8px; }
+  .saved-builds-page { max-width: 1400px; margin: 48px auto; color: white; }
+  .build-list { list-style: none; padding: 0; display: grid; gap: 24px; }
+  .build-item { background: rgba(255,255,255,0.04); padding: 24px; border-radius: 12px; }
+  .build-meta { display:flex; gap:20px; align-items:center; font-size: 1.1rem; }
+  .build-date { font-size: 0.95rem; color: #a8c2ff; }
+  .build-total { font-size: 1.2rem; font-weight: 800; color: #a8e6cf; }
+  .build-actions { margin-top:16px; }
   
 
   .components-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
-    margin-top: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
   }
 
   .component-card {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     align-items: center;
-    padding: 8px;
+    padding: 12px;
     background: rgba(255,255,255,0.02);
-    border-radius: 8px;
+    border-radius: 10px;
     border: 1px solid rgba(255,255,255,0.03);
   }
 
   .component-image {
-    width: 64px;
-    height: 64px;
+    width: 100px;
+    height: 100px;
     object-fit: contain;
     background: #fff;
-    border-radius: 6px;
-    padding: 6px;
+    border-radius: 8px;
+    padding: 8px;
+    flex-shrink: 0;
   }
 
   .component-image.placeholder {
@@ -138,14 +268,26 @@
     background: rgba(255,255,255,0.05);
     color: #fff;
     font-weight: 700;
-    width: 64px;
-    height: 64px;
-    border-radius: 6px;
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    font-size: 2rem;
   }
 
-  .component-meta { display:flex; flex-direction:column; gap:4px; color: #e6eefb; }
-  .component-slot { font-size: 0.75rem; color: #9fb3ff; font-weight: 700; }
-  .component-name { font-weight: 700; }
-  .component-brand { font-size: 0.85rem; color: #a8c2ff; }
-  .component-price { font-weight: 800; color: #a8e6cf; }
+  .component-meta { display:flex; flex-direction:column; gap:6px; color: #e6eefb; }
+  .component-slot { font-size: 0.85rem; color: #9fb3ff; font-weight: 700; text-transform: uppercase; }
+  .component-name { font-weight: 700; font-size: 1rem; }
+  .component-brand { font-size: 0.95rem; color: #a8c2ff; }
+  .component-price { font-weight: 800; color: #a8e6cf; font-size: 1.05rem; }
+
+  .build-actions { display: flex; gap: 12px; }
+  .action-btn { padding: 12px 20px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .primary-btn { background: #5c7cfa; color: white; }
+  .primary-btn:hover { background: #4c63d2; }
+  .delete-btn { background: #fa5252; color: white; }
+  .delete-btn:hover { background: #f03e3e; }
+
+  .page-content { padding: 0 32px; }
+  .page-content h1 { font-size: 2.2rem; margin-bottom: 32px; }
+  .error { color: #ff6b6b; font-weight: 600; margin: 16px 0; font-size: 1.05rem; }
 </style>

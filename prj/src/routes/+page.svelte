@@ -191,7 +191,7 @@
 
 <nav class="navbar">
   <div class="nav-container">
-    <a href="/" class="logo">MyApp</a>
+    <a href="/" class="logo">PcD</a>
 
     <button class="hamburger" on:click={toggle}>
       ☰
@@ -219,9 +219,9 @@
         {#if isProfileOpen}
           <div class="dropdown-menu">
             {#if isLoggedIn}
-              <a href="/profile">My Account</a>
-              <a href="/orders">Orders</a>
-              <a href="/saved-builds">Saved Builds</a>
+              <a href="/profile">Fiókom</a>
+              <a href="/orders">Rendeléseim</a>
+              <a href="/saved-builds">Mentett buildek</a>
               <hr />
             {/if}
               <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
@@ -342,7 +342,7 @@
 <footer class="footer">
   <div class="footer-top">
     <div>
-      <h3>MyApp - PC Alkatrészek & Szerviz</h3>
+      <h3>PcD - PC Alkatrészek & Szerviz</h3>
     </div>
 
     <div class="links">
@@ -350,7 +350,7 @@
         <h4>Termékek</h4>
         <p><a href="/shop">PC Komponensek</a></p>
         <p><a href="/shop?view=prebuilt">Előre Összeépített PC</a></p>
-        <p><a href="/pcbuild">PC Builder</a></p>
+        <p><a href="/pcbuild">PC építő</a></p>
       </div>
       <div>
         <h4>Szolgáltatások</h4>
@@ -367,7 +367,7 @@
     </div>
   </div>
   <div class="footer-credit">
-    <p>© 2026 MyApp PC Alkatrészek & Szerviz. Minden jog fenntartva.</p>
+    <p>© 2026 PcD PC Alkatrészek & Szerviz. Minden jog fenntartva.</p>
   </div>
 </footer>
 

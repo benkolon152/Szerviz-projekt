@@ -291,11 +291,9 @@ app.post("/api/users", async (req, res) => {
     const normalizedEmail = (email || "").trim().toLowerCase();
 
     if (!normalizedUsername || !normalizedEmail || !password) {
-      return res
-        .status(400)
-        .json({
-          message: "Felhasználónév, e-mail és jelszó megadása kötelező",
-        });
+      return res.status(400).json({
+        message: "Felhasználónév, e-mail és jelszó megadása kötelező",
+      });
     }
 
     const existingUser = await pool.query(
@@ -394,6 +392,32 @@ app.get("/api/builds", async (req, res) => {
   } catch (error) {
     console.error("Error fetching builds:", error);
     res.status(500).json({ message: "Hiba a buildek lekérésekor" });
+  }
+});
+
+app.delete("/api/builds/:id", async (req, res) => {
+  const buildId = Number(req.params.id);
+
+  if (!Number.isInteger(buildId) || buildId <= 0) {
+    return res.status(400).json({ message: "Érvénytelen build azonosító" });
+  }
+
+  try {
+    await ensureBuildsTable();
+
+    const deletedBuild = await pool.query(
+      "DELETE FROM builds WHERE id = $1 RETURNING id",
+      [buildId],
+    );
+
+    if (deletedBuild.rowCount === 0) {
+      return res.status(404).json({ message: "Build nem található" });
+    }
+
+    res.status(200).json({ message: "Build sikeresen törölve" });
+  } catch (error) {
+    console.error("Error deleting build:", error);
+    res.status(500).json({ message: "Hiba a build törlése során" });
   }
 });
 
@@ -818,11 +842,9 @@ app.post("/api/inventory", async (req, res) => {
     price_huf === undefined ||
     price_huf === null
   ) {
-    return res
-      .status(400)
-      .json({
-        message: "A név, kategória, márka, modell és az ár megadása kötelező",
-      });
+    return res.status(400).json({
+      message: "A név, kategória, márka, modell és az ár megadása kötelező",
+    });
   }
 
   try {
