@@ -229,7 +229,7 @@
   .saved-builds-page { max-width: 1400px; margin: 48px auto; color: white; }
   .build-list { list-style: none; padding: 0; display: grid; gap: 24px; }
   .build-item { background: rgba(255,255,255,0.04); padding: 24px; border-radius: 12px; }
-  .build-meta { display:flex; gap:20px; align-items:center; font-size: 1.1rem; }
+  .build-meta { display:flex; flex-wrap: wrap; gap: 20px; align-items:center; font-size: 1.1rem; }
   .build-date { font-size: 0.95rem; color: #a8c2ff; }
   .build-total { font-size: 1.2rem; font-weight: 800; color: #a8e6cf; }
   .build-actions { margin-top:16px; }
@@ -280,7 +280,7 @@
   .component-brand { font-size: 0.95rem; color: #a8c2ff; }
   .component-price { font-weight: 800; color: #a8e6cf; font-size: 1.05rem; }
 
-  .build-actions { display: flex; gap: 12px; }
+  .build-actions { display: flex; gap: 12px; flex-wrap: wrap; }
   .action-btn { padding: 12px 20px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .primary-btn { background: #5c7cfa; color: white; }
   .primary-btn:hover { background: #4c63d2; }
@@ -290,4 +290,89 @@
   .page-content { padding: 0 32px; }
   .page-content h1 { font-size: 2.2rem; margin-bottom: 32px; }
   .error { color: #ff6b6b; font-weight: 600; margin: 16px 0; font-size: 1.05rem; }
+
+  @media (max-width: 480px) {
+    .saved-builds-page {
+      margin: 16px auto 32px;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .page-content {
+      padding: 0 14px;
+    }
+
+    .page-content h1 {
+      font-size: 1.9rem;
+      line-height: 1.05;
+      margin-bottom: 20px;
+      word-break: break-word;
+    }
+
+    .build-list {
+      gap: 16px;
+    }
+
+    .build-item {
+      padding: 16px;
+      border-radius: 14px;
+    }
+
+    .build-meta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 1rem;
+    }
+
+    .build-meta strong {
+      font-size: 1.1rem;
+      word-break: break-word;
+    }
+
+    .build-date,
+    .build-total {
+      font-size: 0.95rem;
+    }
+
+    .build-actions {
+      width: 100%;
+      gap: 10px;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 12px 14px;
+    }
+
+    .build-details {
+      margin-top: 4px;
+    }
+
+    .components-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .component-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .component-image,
+    .component-image.placeholder {
+      width: 72px;
+      height: 72px;
+      padding: 6px;
+      font-size: 1.3rem;
+    }
+
+    .component-meta {
+      width: 100%;
+      gap: 4px;
+    }
+  }
 </style>
