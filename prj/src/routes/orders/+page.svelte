@@ -184,6 +184,7 @@
             {#if isLoggedIn}
               <a href="/profile">My Account</a>
               <a href="/orders"><b>Orders</b></a>
+              <a href="/saved-builds">Saved Builds</a>
               <hr />
             {/if}
             <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>

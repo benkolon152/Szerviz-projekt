@@ -260,9 +260,9 @@
     </button>
     
     <ul class="nav-links" class:open={isOpen}>
-      <li><a href="/"><b>Home</b></a></li>
+      <li><a href="/">Home</a></li>
       <li><a href="/shop">Store</a></li>
-      <li><a href="/pcbuild">Pc builder</a></li>
+      <li><a href="/pcbuild"><b>Pc builder</b></a></li>
       {#if isAdmin}
         <li><a href="/users">Users</a></li>
       {/if}
