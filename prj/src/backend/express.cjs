@@ -18,6 +18,7 @@ const INVENTORY_EXCLUDED_COLUMNS = new Set([
 ]);
 
 let ordersSchemaPromise = null;
+let commentsSchemaPromise = null;
 
 function quoteIdentifier(identifier) {
   return `"${String(identifier).replace(/"/g, '""')}"`;
@@ -66,15 +67,56 @@ async function ensureOrdersTable() {
         ON orders (created_at DESC)
       `);
 
-      await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type TEXT NOT NULL DEFAULT 'purchase'`);
-      await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_device TEXT`);
-      await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_issue TEXT`);
-      await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_address TEXT`);
-      await pool.query(`ALTER TABLE orders ALTER COLUMN shipping_address DROP NOT NULL`);
+      await pool.query(
+        `ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type TEXT NOT NULL DEFAULT 'purchase'`,
+      );
+      await pool.query(
+        `ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_device TEXT`,
+      );
+      await pool.query(
+        `ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_issue TEXT`,
+      );
+      await pool.query(
+        `ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_address TEXT`,
+      );
+      await pool.query(
+        `ALTER TABLE orders ALTER COLUMN shipping_address DROP NOT NULL`,
+      );
     })();
   }
 
   return ordersSchemaPromise;
+}
+
+async function ensureCommentsTable() {
+  if (!commentsSchemaPromise) {
+    commentsSchemaPromise = (async () => {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS comments (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          pfp TEXT,
+          content TEXT NOT NULL,
+          "user" TEXT NOT NULL
+        )
+      `);
+
+      await pool.query(
+        `ALTER TABLE comments ADD COLUMN IF NOT EXISTS user_id INTEGER`,
+      );
+      await pool.query(
+        `ALTER TABLE comments ADD COLUMN IF NOT EXISTS pfp TEXT`,
+      );
+      await pool.query(
+        `ALTER TABLE comments ADD COLUMN IF NOT EXISTS content TEXT`,
+      );
+      await pool.query(
+        `ALTER TABLE comments ADD COLUMN IF NOT EXISTS "user" TEXT`,
+      );
+    })();
+  }
+
+  return commentsSchemaPromise;
 }
 
 function normalizeOrderItems(items) {
@@ -89,9 +131,15 @@ function normalizeOrderItems(items) {
 
       return {
         id: item?.id ?? null,
-        name: String(item?.name || item?.model || "Névtelen termék").trim() || "Névtelen termék",
-        quantity: Number.isFinite(quantity) && quantity > 0 ? Math.min(99, Math.floor(quantity)) : 1,
-        price_huf: Number.isFinite(priceHuf) && priceHuf >= 0 ? Math.round(priceHuf) : 0,
+        name:
+          String(item?.name || item?.model || "Névtelen termék").trim() ||
+          "Névtelen termék",
+        quantity:
+          Number.isFinite(quantity) && quantity > 0
+            ? Math.min(99, Math.floor(quantity))
+            : 1,
+        price_huf:
+          Number.isFinite(priceHuf) && priceHuf >= 0 ? Math.round(priceHuf) : 0,
         image_url: String(item?.image_url || "").trim(),
         category: String(item?.category || "").trim(),
         brand: String(item?.brand || "").trim(),
@@ -307,13 +355,16 @@ app.get("/api/users/:id/profile", async (req, res) => {
 
 app.put("/api/users/:id/profile", async (req, res) => {
   const userId = Number(req.params.id);
-  const { email, pfp, city, postal_code, house_number, phone_number } = req.body;
+  const { email, pfp, city, postal_code, house_number, phone_number } =
+    req.body;
 
   if (!Number.isInteger(userId) || userId <= 0) {
     return res.status(400).json({ message: "Invalid user id" });
   }
 
-  const normalizedEmail = String(email || "").trim().toLowerCase();
+  const normalizedEmail = String(email || "")
+    .trim()
+    .toLowerCase();
 
   if (!normalizedEmail) {
     return res.status(400).json({ message: "Email is required" });
@@ -338,7 +389,9 @@ app.put("/api/users/:id/profile", async (req, res) => {
         normalizedEmail,
         String(pfp || "").trim(),
         String(city || "").trim(),
-        postal_code === null || postal_code === undefined || postal_code === "" ? null : Number(postal_code),
+        postal_code === null || postal_code === undefined || postal_code === ""
+          ? null
+          : Number(postal_code),
         String(house_number || "").trim(),
         String(phone_number || "").trim(),
         userId,
@@ -349,7 +402,12 @@ app.put("/api/users/:id/profile", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ message: "Profile updated successfully", user: updatedUser.rows[0] });
+    res
+      .status(200)
+      .json({
+        message: "Profile updated successfully",
+        user: updatedUser.rows[0],
+      });
   } catch (error) {
     console.error("Error updating user profile:", error);
     res.status(500).json({ message: "Error updating user profile" });
@@ -396,28 +454,54 @@ app.post("/api/orders", async (req, res) => {
     items,
     status,
   } = req.body;
-  const normalizedUserId = user_id === null || user_id === undefined || user_id === "" ? null : Number(user_id);
-  const normalizedOrderType = String(order_type || "purchase").trim().toLowerCase() === "repair_request" ? "repair_request" : "purchase";
+  const normalizedUserId =
+    user_id === null || user_id === undefined || user_id === ""
+      ? null
+      : Number(user_id);
+  const normalizedOrderType =
+    String(order_type || "purchase")
+      .trim()
+      .toLowerCase() === "repair_request"
+      ? "repair_request"
+      : "purchase";
   const normalizedCustomerName = String(customer_name || "").trim();
-  const normalizedCustomerEmail = String(customer_email || "").trim().toLowerCase();
+  const normalizedCustomerEmail = String(customer_email || "")
+    .trim()
+    .toLowerCase();
   const normalizedShippingAddress = String(shipping_address || "").trim();
   const normalizedPhoneNumber = String(phone_number || "").trim();
   const normalizedRepairDevice = String(repair_device || "").trim();
   const normalizedRepairIssue = String(repair_issue || "").trim();
-  const normalizedStatus = String(status || (normalizedOrderType === "repair_request" ? "needs_repair" : "processing")).trim().toLowerCase();
+  const normalizedStatus = String(
+    status ||
+      (normalizedOrderType === "repair_request"
+        ? "needs_repair"
+        : "processing"),
+  )
+    .trim()
+    .toLowerCase();
   const normalizedItems = normalizeOrderItems(items);
 
-  if (normalizedUserId !== null && (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0)) {
+  if (
+    normalizedUserId !== null &&
+    (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0)
+  ) {
     return res.status(400).json({ message: "Invalid user id" });
   }
 
   if (!normalizedCustomerName || !normalizedCustomerEmail) {
-    return res.status(400).json({ message: "Customer name, email and shipping address are required" });
+    return res
+      .status(400)
+      .json({
+        message: "Customer name, email and shipping address are required",
+      });
   }
 
   if (normalizedOrderType === "repair_request") {
     if (!normalizedRepairDevice || !normalizedRepairIssue) {
-      return res.status(400).json({ message: "Repair device and repair issue are required" });
+      return res
+        .status(400)
+        .json({ message: "Repair device and repair issue are required" });
     }
   } else if (!normalizedShippingAddress) {
     return res.status(400).json({ message: "Shipping address is required" });
@@ -427,13 +511,20 @@ app.post("/api/orders", async (req, res) => {
     return res.status(400).json({ message: "Order items are required" });
   }
 
-  const totalHuf = normalizedOrderType === "purchase"
-    ? normalizedItems.reduce((sum, item) => sum + Number(item.price_huf || 0) * Number(item.quantity || 0), 0)
-    : 0;
+  const totalHuf =
+    normalizedOrderType === "purchase"
+      ? normalizedItems.reduce(
+          (sum, item) =>
+            sum + Number(item.price_huf || 0) * Number(item.quantity || 0),
+          0,
+        )
+      : 0;
 
-  const safeStatus = normalizedOrderType === "repair_request" && normalizedStatus === "processing"
-    ? "needs_repair"
-    : normalizedStatus;
+  const safeStatus =
+    normalizedOrderType === "repair_request" &&
+    normalizedStatus === "processing"
+      ? "needs_repair"
+      : normalizedStatus;
 
   try {
     await ensureOrdersTable();
@@ -461,9 +552,13 @@ app.post("/api/orders", async (req, res) => {
         normalizedOrderType,
         normalizedCustomerName,
         normalizedCustomerEmail,
-        normalizedOrderType === "purchase" ? normalizedShippingAddress : normalizedShippingAddress || null,
+        normalizedOrderType === "purchase"
+          ? normalizedShippingAddress
+          : normalizedShippingAddress || null,
         normalizedPhoneNumber || null,
-        normalizedOrderType === "repair_request" ? normalizedRepairDevice : null,
+        normalizedOrderType === "repair_request"
+          ? normalizedRepairDevice
+          : null,
         normalizedOrderType === "repair_request" ? normalizedRepairIssue : null,
         JSON.stringify(normalizedItems),
         totalHuf,
@@ -478,6 +573,116 @@ app.post("/api/orders", async (req, res) => {
   } catch (error) {
     console.error("Error creating order:", error);
     res.status(500).json({ message: "Error creating order" });
+  }
+});
+
+app.get("/api/comments", async (req, res) => {
+  try {
+    await ensureCommentsTable();
+
+    const result = await pool.query(
+      `
+        SELECT id, user_id, pfp, content, "user"
+        FROM comments
+        ORDER BY id DESC
+        LIMIT 50
+      `,
+    );
+
+    res.status(200).json({ comments: result.rows });
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    res.status(500).json({ message: "Error fetching comments" });
+  }
+});
+
+app.post("/api/comments", async (req, res) => {
+  const { user_id, pfp, content, user } = req.body;
+  const normalizedUserId =
+    user_id === null || user_id === undefined || user_id === ""
+      ? null
+      : Number(user_id);
+  const normalizedPfp = String(pfp || "").trim();
+  const normalizedContent = String(content || "").trim();
+  const normalizedUser = String(user || "").trim();
+
+  if (
+    normalizedUserId !== null &&
+    (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0)
+  ) {
+    return res.status(400).json({ message: "Invalid user id" });
+  }
+
+  if (!normalizedUser || !normalizedContent) {
+    return res.status(400).json({ message: "User and content are required" });
+  }
+
+  try {
+    await ensureCommentsTable();
+
+    const createdComment = await pool.query(
+      `
+        INSERT INTO comments (user_id, pfp, content, "user")
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, user_id, pfp, content, "user"
+      `,
+      [
+        normalizedUserId,
+        normalizedPfp || null,
+        normalizedContent,
+        normalizedUser,
+      ],
+    );
+
+    res.status(201).json({
+      message: "Comment created successfully",
+      comment: createdComment.rows[0],
+    });
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    res.status(500).json({ message: "Error creating comment" });
+  }
+});
+
+app.delete("/api/comments/:id", async (req, res) => {
+  const commentId = Number(req.params.id);
+  const userId = req.body?.user_id ? Number(req.body.user_id) : null;
+  const isAdmin = Boolean(req.body?.isadmin);
+
+  if (!Number.isInteger(commentId) || commentId <= 0) {
+    return res.status(400).json({ message: "Invalid comment id" });
+  }
+
+  try {
+    await ensureCommentsTable();
+
+    const comment = await pool.query(
+      `SELECT user_id FROM comments WHERE id = $1 LIMIT 1`,
+      [commentId],
+    );
+
+    if (comment.rowCount === 0) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    const commentUserId = comment.rows[0]?.user_id;
+    const isOwner = userId && userId === commentUserId;
+
+    if (!isOwner && !isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "You can only delete your own comments" });
+    }
+
+    const deletedComment = await pool.query(
+      `DELETE FROM comments WHERE id = $1 RETURNING id`,
+      [commentId],
+    );
+
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    res.status(500).json({ message: "Error deleting comment" });
   }
 });
 
@@ -501,15 +706,26 @@ app.get("/api/inventory", async (req, res) => {
 app.post("/api/inventory", async (req, res) => {
   const { name, category, brand, model, price_huf, image_url } = req.body;
 
-  if (!name || !category || !brand || !model || price_huf === undefined || price_huf === null) {
-    return res.status(400).json({ message: "Name, category, brand, model and price are required" });
+  if (
+    !name ||
+    !category ||
+    !brand ||
+    !model ||
+    price_huf === undefined ||
+    price_huf === null
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Name, category, brand, model and price are required" });
   }
 
   try {
     const nextSortOrderResult = await pool.query(
       `SELECT COALESCE(MAX(sort_order), 0) + 1 AS next_sort_order FROM ${INVENTORY_TABLE}`,
     );
-    const nextSortOrder = Number(nextSortOrderResult.rows[0]?.next_sort_order || 1);
+    const nextSortOrder = Number(
+      nextSortOrderResult.rows[0]?.next_sort_order || 1,
+    );
 
     const createdItem = await pool.query(
       `
@@ -534,7 +750,12 @@ app.post("/api/inventory", async (req, res) => {
       ],
     );
 
-    res.status(201).json({ message: "Inventory item created successfully", item: createdItem.rows[0] });
+    res
+      .status(201)
+      .json({
+        message: "Inventory item created successfully",
+        item: createdItem.rows[0],
+      });
   } catch (error) {
     console.error("Error creating inventory item:", error);
     res.status(500).json({ message: "Error creating inventory item" });
@@ -624,7 +845,9 @@ app.get("/api/shop/components", async (req, res) => {
       whereParts.push(`category = $${values.length}`);
     }
 
-    const whereClause = whereParts.length ? `WHERE ${whereParts.join(" AND ")}` : "";
+    const whereClause = whereParts.length
+      ? `WHERE ${whereParts.join(" AND ")}`
+      : "";
     const result = await pool.query(
       `
         SELECT id, category, name, brand, model, price_huf, image_url, sort_order, specifications
