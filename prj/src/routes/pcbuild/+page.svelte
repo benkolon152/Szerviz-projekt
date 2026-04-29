@@ -151,6 +151,62 @@
     closeModal(); // 
   }
 
+  async function handleSaveBuild() {
+    // prompt for a build name
+    const name = window.prompt("Build neve:", `MyApp build ${new Date().toLocaleString()}`);
+
+    if (name === null) {
+      // user cancelled
+      return;
+    }
+
+    const rawUser = localStorage.getItem("user");
+    let userId = null;
+    if (rawUser) {
+      try {
+        const parsed = JSON.parse(rawUser);
+        userId = Number(parsed?.id) || null;
+      } catch {
+        userId = null;
+      }
+    }
+
+    const payload = {
+      user_id: userId,
+      name: String(name).trim() || null,
+      components: selectedParts,
+      services: {
+        osszeszereles: Boolean(services.osszeszereles.checked),
+        bios: Boolean(services.bios.checked),
+        teszteles: Boolean(services.teszteles.checked),
+      },
+      total_huf: Number(total) || 0,
+      metadata: {
+        parts_total: Number(partsTotal) || 0,
+      }
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/builds`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        message = data?.message || "Nem sikerült elmenteni a buildet.";
+        return;
+      }
+
+      message = "Build elmentve.";
+    } catch (err) {
+      console.error(err);
+      message = "Hálózati hiba a build mentésekor.";
+    }
+  }
+
   $: if (isModalOpen || searchQuery !== undefined) {
     if (isModalOpen) {
       fetchParts();
@@ -190,6 +246,7 @@
             {#if isLoggedIn}
               <a href="/profile">My Account</a>
               <a href="/orders">Orders</a>
+                <a href="/saved-builds">Saved Builds</a>
               <hr />
             {/if}
             <button class={isLoggedIn ? "logout" : "login-action"} on:click={handleAuthAction}>
@@ -514,7 +571,7 @@
   </div>
 
   <div class="builder-footer">
-    <button class="btn-save">Mentés</button>
+    <button class="btn-save" on:click={handleSaveBuild}>Mentés</button>
     <div class="footer-right">
       <div class="total-price">
         <span>Összesen</span>
@@ -531,12 +588,18 @@
 </div>
 
 {#if isModalOpen}
-<div class="modal-backdrop" on:click|self={closeModal}>
-  <div class="modal-content">
+<div
+  class="modal-backdrop"
+  role="button"
+  tabindex="0"
+  on:click|self={closeModal}
+  on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); closeModal(); } }}
+>
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
 
     <div class="modal-header">
-      <h2>{activeCategory} választása</h2>
-      <button class="close-btn" on:click={closeModal}>✕</button>
+      <h2 id="modal-title">{activeCategory} választása</h2>
+      <button class="close-btn" type="button" on:click={closeModal}>✕</button>
     </div>
 
     <input

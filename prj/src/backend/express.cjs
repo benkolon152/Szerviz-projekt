@@ -19,6 +19,7 @@ const INVENTORY_EXCLUDED_COLUMNS = new Set([
 
 let ordersSchemaPromise = null;
 let commentsSchemaPromise = null;
+let buildsSchemaPromise = null;
 
 function quoteIdentifier(identifier) {
   return `"${String(identifier).replace(/"/g, '""')}"`;
@@ -117,6 +118,33 @@ async function ensureCommentsTable() {
   }
 
   return commentsSchemaPromise;
+}
+
+async function ensureBuildsTable() {
+  if (!buildsSchemaPromise) {
+    buildsSchemaPromise = (async () => {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS builds (
+          id BIGSERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          name TEXT,
+          components JSONB NOT NULL DEFAULT '{}'::jsonb,
+          services JSONB NOT NULL DEFAULT '[]'::jsonb,
+          metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+          total_huf INTEGER NOT NULL DEFAULT 0,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS builds_user_id_created_at_idx
+        ON builds (user_id, created_at DESC)
+      `);
+    })();
+  }
+
+  return buildsSchemaPromise;
 }
 
 function normalizeOrderItems(items) {
@@ -300,6 +328,56 @@ app.post("/api/users", async (req, res) => {
 
     console.error("Error creating user:", error);
     res.status(500).json({ message: "Error creating user" });
+  }
+});
+
+app.post("/api/builds", async (req, res) => {
+  const { user_id, name, components, services, total_huf, metadata } = req.body;
+
+  try {
+    // ensure table exists
+    await ensureBuildsTable();
+
+    const normalizedName = name ? String(name).trim() : null;
+    const componentsJson = components && typeof components === 'object' ? components : {};
+    const servicesJson = services && typeof services === 'object' ? services : {};
+    const metadataJson = metadata && typeof metadata === 'object' ? metadata : {};
+    const total = Number(total_huf) || 0;
+
+    const result = await pool.query(
+      `INSERT INTO builds (user_id, name, components, services, metadata, total_huf) VALUES ($1, $2, $3::jsonb, $4::jsonb, $5::jsonb, $6) RETURNING *`,
+      [user_id || null, normalizedName, componentsJson, servicesJson, metadataJson, total]
+    );
+
+    res.status(201).json({ message: 'Build saved', build: result.rows[0] });
+  } catch (error) {
+    console.error('Error saving build:', error);
+    res.status(500).json({ message: 'Error saving build' });
+  }
+});
+
+app.get("/api/builds", async (req, res) => {
+  const userId = req.query.user_id ? Number(req.query.user_id) : null;
+
+  try {
+    await ensureBuildsTable();
+
+    let result;
+    if (userId && Number.isInteger(userId) && userId > 0) {
+      result = await pool.query(
+        "SELECT * FROM builds WHERE user_id = $1 ORDER BY created_at DESC",
+        [userId]
+      );
+    } else {
+      result = await pool.query(
+        "SELECT * FROM builds ORDER BY created_at DESC LIMIT 100"
+      );
+    }
+
+    res.status(200).json({ builds: result.rows });
+  } catch (error) {
+    console.error("Error fetching builds:", error);
+    res.status(500).json({ message: "Error fetching builds" });
   }
 });
 
