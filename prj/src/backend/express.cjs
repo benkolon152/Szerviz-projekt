@@ -187,7 +187,9 @@ app.post("/api/register", async (req, res) => {
     const normalizedEmail = (email || "").trim().toLowerCase();
 
     if (!username || !normalizedEmail || !password) {
-      return res.status(400).json({ message: "Minden mező kitöltése kötelező" });
+      return res
+        .status(400)
+        .json({ message: "Minden mező kitöltése kötelező" });
     }
 
     const existingUser = await pool.query(
@@ -226,7 +228,9 @@ app.post("/api/login", async (req, res) => {
     const normalizedIdentifier = (identifier || "").trim().toLowerCase();
 
     if (!normalizedIdentifier || !password) {
-      return res.status(400).json({ message: "Minden mező kitöltése kötelező" });
+      return res
+        .status(400)
+        .json({ message: "Minden mező kitöltése kötelező" });
     }
 
     const result = await pool.query(
@@ -289,7 +293,9 @@ app.post("/api/users", async (req, res) => {
     if (!normalizedUsername || !normalizedEmail || !password) {
       return res
         .status(400)
-        .json({ message: "Felhasználónév, e-mail és jelszó megadása kötelező" });
+        .json({
+          message: "Felhasználónév, e-mail és jelszó megadása kötelező",
+        });
     }
 
     const existingUser = await pool.query(
@@ -339,20 +345,30 @@ app.post("/api/builds", async (req, res) => {
     await ensureBuildsTable();
 
     const normalizedName = name ? String(name).trim() : null;
-    const componentsJson = components && typeof components === 'object' ? components : {};
-    const servicesJson = services && typeof services === 'object' ? services : {};
-    const metadataJson = metadata && typeof metadata === 'object' ? metadata : {};
+    const componentsJson =
+      components && typeof components === "object" ? components : {};
+    const servicesJson =
+      services && typeof services === "object" ? services : {};
+    const metadataJson =
+      metadata && typeof metadata === "object" ? metadata : {};
     const total = Number(total_huf) || 0;
 
     const result = await pool.query(
       `INSERT INTO builds (user_id, name, components, services, metadata, total_huf) VALUES ($1, $2, $3::jsonb, $4::jsonb, $5::jsonb, $6) RETURNING *`,
-      [user_id || null, normalizedName, componentsJson, servicesJson, metadataJson, total]
+      [
+        user_id || null,
+        normalizedName,
+        componentsJson,
+        servicesJson,
+        metadataJson,
+        total,
+      ],
     );
 
-    res.status(201).json({ message: 'Build elmentve', build: result.rows[0] });
+    res.status(201).json({ message: "Build elmentve", build: result.rows[0] });
   } catch (error) {
-    console.error('Error saving build:', error);
-    res.status(500).json({ message: 'Hiba a build mentésekor' });
+    console.error("Error saving build:", error);
+    res.status(500).json({ message: "Hiba a build mentésekor" });
   }
 });
 
@@ -366,11 +382,11 @@ app.get("/api/builds", async (req, res) => {
     if (userId && Number.isInteger(userId) && userId > 0) {
       result = await pool.query(
         "SELECT * FROM builds WHERE user_id = $1 ORDER BY created_at DESC",
-        [userId]
+        [userId],
       );
     } else {
       result = await pool.query(
-        "SELECT * FROM builds ORDER BY created_at DESC LIMIT 100"
+        "SELECT * FROM builds ORDER BY created_at DESC LIMIT 100",
       );
     }
 
@@ -385,7 +401,9 @@ app.delete("/api/users/:id", async (req, res) => {
   const userId = Number(req.params.id);
 
   if (!Number.isInteger(userId) || userId <= 0) {
-    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
+    return res
+      .status(400)
+      .json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   try {
@@ -409,7 +427,9 @@ app.get("/api/users/:id/profile", async (req, res) => {
   const userId = Number(req.params.id);
 
   if (!Number.isInteger(userId) || userId <= 0) {
-    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
+    return res
+      .status(400)
+      .json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   try {
@@ -437,7 +457,9 @@ app.put("/api/users/:id/profile", async (req, res) => {
     req.body;
 
   if (!Number.isInteger(userId) || userId <= 0) {
-    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
+    return res
+      .status(400)
+      .json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   const normalizedEmail = String(email || "")
@@ -480,12 +502,10 @@ app.put("/api/users/:id/profile", async (req, res) => {
       return res.status(404).json({ message: "Felhasználó nem található" });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Profil sikeresen frissítve",
-        user: updatedUser.rows[0],
-      });
+    res.status(200).json({
+      message: "Profil sikeresen frissítve",
+      user: updatedUser.rows[0],
+    });
   } catch (error) {
     console.error("Error updating user profile:", error);
     res.status(500).json({ message: "Hiba a profil frissítésekor" });
@@ -496,7 +516,9 @@ app.get("/api/users/:id/orders", async (req, res) => {
   const userId = Number(req.params.id);
 
   if (!Number.isInteger(userId) || userId <= 0) {
-    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
+    return res
+      .status(400)
+      .json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   try {
@@ -515,7 +537,9 @@ app.get("/api/users/:id/orders", async (req, res) => {
     res.status(200).json({ orders: result.rows });
   } catch (error) {
     console.error("Error fetching user orders:", error);
-    res.status(500).json({ message: "Hiba a felhasználó rendeléseinek lekérésekor" });
+    res
+      .status(500)
+      .json({ message: "Hiba a felhasználó rendeléseinek lekérésekor" });
   }
 });
 
@@ -564,15 +588,15 @@ app.post("/api/orders", async (req, res) => {
     normalizedUserId !== null &&
     (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0)
   ) {
-    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
+    return res
+      .status(400)
+      .json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   if (!normalizedCustomerName || !normalizedCustomerEmail) {
-    return res
-      .status(400)
-      .json({
-        message: "Customer name, email and shipping address are required",
-      });
+    return res.status(400).json({
+      message: "Customer name, email and shipping address are required",
+    });
   }
 
   if (normalizedOrderType === "repair_request") {
@@ -688,7 +712,9 @@ app.post("/api/comments", async (req, res) => {
     normalizedUserId !== null &&
     (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0)
   ) {
-    return res.status(400).json({ message: "Érvénytelen felhasználóazonosító" });
+    return res
+      .status(400)
+      .json({ message: "Érvénytelen felhasználóazonosító" });
   }
 
   if (!normalizedUser || !normalizedContent) {
@@ -794,7 +820,9 @@ app.post("/api/inventory", async (req, res) => {
   ) {
     return res
       .status(400)
-      .json({ message: "A név, kategória, márka, modell és az ár megadása kötelező" });
+      .json({
+        message: "A név, kategória, márka, modell és az ár megadása kötelező",
+      });
   }
 
   try {
@@ -828,12 +856,10 @@ app.post("/api/inventory", async (req, res) => {
       ],
     );
 
-    res
-      .status(201)
-      .json({
-        message: "Inventory item created successfully",
-        item: createdItem.rows[0],
-      });
+    res.status(201).json({
+      message: "Inventory item created successfully",
+      item: createdItem.rows[0],
+    });
   } catch (error) {
     console.error("Error creating inventory item:", error);
     res.status(500).json({ message: "Error creating inventory item" });
@@ -1004,7 +1030,7 @@ app.get("/api/parts/:category", async (req, res) => {
         AND (name ILIKE $2 OR brand ILIKE $2)
         ORDER BY id ASC
       `,
-      [category, `%${searchQuery}%`]
+      [category, `%${searchQuery}%`],
     );
 
     res.status(200).json({ items: result.rows });
