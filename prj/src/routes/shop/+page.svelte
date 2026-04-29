@@ -1,6 +1,7 @@
         <script>
-    import { onMount } from "svelte";
-            import { afterNavigate, goto } from "$app/navigation";
+        import { onMount } from "svelte";
+            import { goto } from "$app/navigation";
+            import { page } from "$app/stores";
             import { pcComponentCategoryLabels } from "$lib/pc-components";
                     import CartDrawer from "$lib/components/CartDrawer.svelte";
             import { cart, cartOpen } from "$lib/cart";
@@ -108,9 +109,9 @@
         },
     ];
 
-    function syncShopView() {
-        const params = new URLSearchParams(window.location.search);
-        const nextIsPrebuiltView = params.get("view") === "prebuilt";
+    function syncShopView(params) {
+        const searchParams = params ?? new URLSearchParams(window.location.search);
+        const nextIsPrebuiltView = searchParams.get("view") === "prebuilt";
 
         isPrebuiltView = nextIsPrebuiltView;
 
@@ -143,8 +144,12 @@
         }
     }
 
-    onMount(async () => {
-        syncShopView();
+    onMount(() => {
+        syncShopView(new URLSearchParams(window.location.search));
+
+        const unsubscribe = page.subscribe(($page) => {
+            syncShopView($page.url.searchParams);
+        });
 
         const rawUser = localStorage.getItem("user");
         isLoggedIn = Boolean(rawUser);
@@ -164,9 +169,7 @@
             }
         }
 
-        afterNavigate(() => {
-            syncShopView();
-        });
+        return unsubscribe;
     });
 
     async function loadFeaturedItems() {
@@ -357,7 +360,7 @@
     }
 
     function goToShop() {
-        window.location.href = "/shop";
+        goto("/shop");
     }
 
     async function loadCategoryItems(category) {
