@@ -2,7 +2,7 @@
 
 Az alkalmazás célja egy komplex informatikai platform biztosítása, ahol a felhasználók nemcsak kész hardvereket vásárolhatnak, hanem egy interaktív PC Builder segítségével összeállíthatják saját gépüket, vagy meghibásodás esetén szervizszolgáltatást igényelhetnek. Az adminisztrátorok és dolgozók számára teljes körű készlet- és felhasználókezelést biztosít a rendszer.
 
-<ins>A publikált weboldal linkje:</ins> [PCD Live Link](https://[...].netlify.app/)
+<ins>A publikált weboldal linkje:</ins> [PCD Live Link](https://pcd_pure_custom_desktops.onrender.com)
 
 ## A program funkciói:
 
